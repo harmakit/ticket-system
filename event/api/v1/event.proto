@@ -1,0 +1,42 @@
+syntax = "proto3";
+package event.api.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+option go_package = "ticket-system/event/api/v1";
+
+service EventService {
+  rpc GetEvent(GetEventRequest) returns (GetEventResponse);
+}
+
+message GetEventRequest {
+  string id = 1;
+}
+
+message GetEventResponse {
+  Event event = 1;
+}
+
+message Event {
+  string id = 1;
+  google.protobuf.Timestamp date = 2;
+  int32 duration = 3;
+  string name = 4;
+  google.protobuf.StringValue description = 5;
+  optional Location location = 6;
+  repeated Ticket tickets = 7;
+}
+
+message Location {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  float lat = 4;
+  float lng = 5;
+}
+
+message Ticket {
+  string id = 1;
+  string event_id = 2;
+  float  price = 3;
+}

@@ -1,15 +1,19 @@
-package model
+package schema
 
 import (
 	"database/sql"
 	"time"
 )
 
+const EventTable = "event"
+
+var EventColumns = []string{"id", "date", "duration", "name", "description", "location_id"}
+
 type Event struct {
-	id          string
-	date        time.Time
-	duration    int
-	name        string
-	description string
-	location    sql.NullString
+	Id          string
+	Date        time.Time
+	Duration    int
+	Name        string
+	Description sql.NullString
+	LocationId  sql.NullString
 }

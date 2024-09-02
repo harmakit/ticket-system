@@ -10,8 +10,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"ticket-system/events/internal/config"
-	"ticket-system/events/internal/logger"
+	"ticket-system/event/internal/config"
+	handlerv1 "ticket-system/event/internal/handler/v1"
+	repository "ticket-system/event/internal/repository/postgres"
+	"ticket-system/event/internal/service"
+	v1 "ticket-system/event/pkg/v1"
+	"ticket-system/lib/interceptor"
+	"ticket-system/lib/logger"
 	"ticket-system/lib/query-engine/postgres"
 )
 
@@ -43,7 +48,14 @@ func main() {
 		logger.Fatal("failed to listen", zap.Error(err))
 	}
 
-	s := grpc.NewServer()
+	bls := makeBusinessLogicService(db)
+
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.LoggingInterceptor,
+		),
+	)
+	v1.RegisterEventServiceServer(s, handlerv1.NewEventServiceImplementation(bls))
 	reflection.Register(s)
 
 	logger.Info("server listening", zap.String("address", lis.Addr().String()))
@@ -58,4 +70,12 @@ func main() {
 
 	<-ctx.Done()
 	s.GracefulStop()
+}
+
+func makeBusinessLogicService(db *postgres.TransactionManager) service.BusinessLogic {
+	er := repository.NewEventRepository(db)
+	es := service.NewEventService(er)
+	bl := service.New(es)
+
+	return bl
 }

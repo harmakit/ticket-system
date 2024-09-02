@@ -24,6 +24,6 @@ go.work.sum
 .env
 
 .idea
-*/.docker
+*/.docker/data/*
 */vendor-proto
 */bin/*

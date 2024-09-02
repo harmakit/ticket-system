@@ -1,22 +1,30 @@
+CONTAINER=event
+DC=docker compose -p ticket-system -f ./.docker/docker-compose.yml
+EXEC=$(DC) exec $(CONTAINER)
 CURDIR=$(shell pwd)
 BINDIR=${CURDIR}/bin
 GOVER=$(shell go version | perl -nle '/(go\d\S+)/; print $$1;')
 LINTVER=v1.60.2
 LINTBIN=${BINDIR}/lint_${GOVER}_${LINTVER}
-PACKAGE=ticket-system/events
+SERVER=ticket-system/event/cmd/server
+MIGRATE=ticket-system/event/cmd/migrate
 
 .PHONY: all
 
 all: build test lint
 
 build: bindir
-	env GOOS=linux GOARCH=amd64 go build -o ${BINDIR}/app ${PACKAGE}
+	env GOOS=linux GOARCH=amd64 go build -o ${BINDIR}/app ${SERVER} && \
+	env GOOS=linux GOARCH=amd64 go build -o ${BINDIR}/migrate ${MIGRATE}
+
+migrate:
+	${EXEC} cmd/migrate
 
 test:
 	go test ./...
 
 run:
-	go run ${PACKAGE}
+	${EXEC} cmd/app
 
 lint: install-lint
 	${LINTBIN} run
@@ -56,8 +64,10 @@ vendor-proto:
 	fi
 
 generate:
-	mkdir -p pkg/event_v1
-	protoc -I api/event/v1 -I vendor-proto \
-	--go_out=pkg/event_v1 --go_opt=paths=source_relative \
-	--plugin=protoc-gen-go=bin/protoc-gen-go \
-	api/event/v1/service.proto
+	mkdir -p pkg/v1
+	protoc -I api/v1 -I vendor-proto \
+		--go_out=pkg/v1 --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go=bin/protoc-gen-go \
+		--go-grpc_out=pkg/v1 --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
+		api/v1/*.proto
