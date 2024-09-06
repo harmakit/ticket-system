@@ -8,25 +8,25 @@ services:
       context: ../../
       dockerfile: event/.docker/Dockerfile.multistage
     ports:
-      - 50600:50600
+      - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
     networks:
       - ticket-system
     depends_on:
       - event_db
     restart: on-failure
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@event_db:5432/event
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@event_db:5432/${POSTGRES_DB}
+    env_file:
+      - ../.env
 
   event_db:
     image: postgres
     ports:
-      - 50601:5432
+      - ${EXPOSE_DB_PORT}:5432
     volumes:
-      - ../event/.docker/data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: event
+      - ./data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
     networks:
       - ticket-system
     restart: unless-stopped

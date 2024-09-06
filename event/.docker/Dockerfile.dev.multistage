@@ -36,11 +36,7 @@ WORKDIR /
 
 COPY --from=build-stage /app/event/bin/server /server
 COPY --from=build-stage /app/event/bin/migrate /migrate
-COPY --from=build-stage /app/event/config.yml /config.yml
 COPY --from=build-stage /app/event/db/migrations /migrations
 COPY --from=build-stage /app/event/bin/dlv /dlv
 
-EXPOSE 50602
-
-CMD ["/dlv", "--listen=:50602", "--headless=true", "--api-version=2", "exec", "/server"]
-#CMD ["/server"]
+CMD exec /dlv --listen=:${DEBUG_PORT} --headless=true --api-version=2 exec /server

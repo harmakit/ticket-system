@@ -1,33 +1,57 @@
 CONTAINER=event
 
-DC=docker compose -p ticket-system -f ./.docker/docker-compose.yml
-DC_DEBUG = docker compose -p ticket-system -f ./.docker/docker-compose.yml -f ./.docker/docker-compose.dev.yml
+DC=docker compose -p ticket-system --env-file ./.env -f ./.docker/docker-compose.yml
+DC_DEBUG = docker compose -p ticket-system --env-file ./.env -f ./.docker/docker-compose.yml -f ./.docker/docker-compose.dev.yml
 
 EXEC=$(DC) exec $(CONTAINER)
 BINDIR=$(shell pwd)/bin
 
-.PHONY: build
+.DEFAULT_GOAL := help
 
-up: env
+### docker
+
+up: env ## Run containers
 	${DC} up -d
 
-up-debug: env
+up-debug: env ## Run containers with debugger
 	${DC_DEBUG} up -d
 
-build: env generate-proto
+build: env generate-proto ## Build Docker image
 	${DC} build
 
-build-debug: env generate-proto
+build-debug: env generate-proto ## Build Docker image with debugger
 	${DC_DEBUG} build
 
-migrate:
-	${EXEC} migrate
+down: ## Stop containers
+	${DC} down
+
+migrate: ## Run migrations in running container
+	${EXEC} /migrate
+
+### local
+
+build-local: env generate-proto ## Build locally
+	go build -o ./bin/server ./cmd/server && \
+	go build -o ./bin/migrate ./cmd/migrate
+
+lint: install-lint ## Run linter
+	${BINDIR}/golangci-lint run ./...
+
+test: ## Run tests
+	go test ./...
+
+pre-commit: ## Use before commit
+	lint test
 
 ### helpers
 
+help: ## Show this help
+	@printf "\033[33m%s:\033[0m\n" 'Available commands'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
 env:
-	if [ ! -f .docker/.env ]; then \
-		cp .docker/.env.dist .docker/.env; \
+	if [ ! -f .env ]; then \
+		cp .env.dist .env; \
 	fi
 
 bindir:
@@ -60,3 +84,6 @@ generate-proto: install-protoc install-vendor-proto
 		--go-grpc_out=pkg/v1 --go-grpc_opt=paths=source_relative \
 		--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 		api/v1/*.proto
+
+install-lint:
+	test -f $(BINDIR)/golangci-lint || GOBIN=$(BINDIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3

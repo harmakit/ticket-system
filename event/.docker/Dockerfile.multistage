@@ -33,7 +33,6 @@ WORKDIR /
 
 COPY --from=build-stage /app/event/bin/server /server
 COPY --from=build-stage /app/event/bin/migrate /migrate
-COPY --from=build-stage /app/event/config.yml /config.yml
 COPY --from=build-stage /app/event/db/migrations /migrations
 
 CMD ["/server"]

@@ -7,4 +7,4 @@ services:
     cap_add:
       - SYS_PTRACE
     ports:
-      - 50602:50602
+      - ${EXPOSE_DEBUG_PORT}:${DEBUG_PORT}

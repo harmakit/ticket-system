@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -14,15 +14,15 @@ type Config struct {
 var Data *Config
 
 func Init() error {
-	rawYML, err := os.ReadFile("config.yml")
+	var err error
+	Data = &Config{}
+
+	Data.Port, err = strconv.Atoi(os.Getenv("SERVER_PORT"))
 	if err != nil {
-		return errors.WithMessage(err, "unable to read config.yml")
+		return errors.WithMessage(err, "invalid port")
 	}
 
-	err = yaml.Unmarshal(rawYML, &Data)
-	if err != nil {
-		return errors.WithMessage(err, "unable to unmarshal config.yml")
-	}
+	Data.Env = os.Getenv("ENV")
 
 	err = Validate()
 	if err != nil {

@@ -15,5 +15,5 @@ type Event struct {
 }
 
 func (e *Event) IsOnline() bool {
-	return e.LocationId.Valid == false
+	return !e.LocationId.Valid
 }
