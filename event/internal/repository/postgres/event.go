@@ -45,7 +45,7 @@ func (r eventRepository) Find(ctx context.Context, id string) (*model.Event, err
 		return nil, err
 	}
 
-	rows, _ := db.Query(ctx, rawQuery, args)
+	rows, _ := db.Query(ctx, rawQuery, args...)
 	event, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Event])
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r eventRepository) FindBy(ctx context.Context, params repository.FindEvent
 		return nil, err
 	}
 
-	rows, _ := db.Query(ctx, rawQuery, args)
+	rows, _ := db.Query(ctx, rawQuery, args...)
 	events, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Event])
 	if err != nil {
 		return nil, err

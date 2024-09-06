@@ -63,18 +63,19 @@ func (impl EventServiceImplementation) ListEvents(ctx context.Context, req *desc
 }
 
 func (impl EventServiceImplementation) bindModelsToDescEvent(event *model.Event, location *model.Location, tickets []*model.Ticket) *desc.Event {
-
-	var description *wrapperspb.StringValue
-	if event.Description.Valid {
-		description.Value = event.Description.String
+	if event == nil {
+		return nil
 	}
 
-	dl := &desc.Location{
-		Id:      string(location.Id),
-		Name:    location.Name,
-		Address: location.Address,
-		Lat:     location.Lat,
-		Lng:     location.Lng,
+	var dl *desc.Location
+	if location != nil {
+		dl = &desc.Location{
+			Id:      string(location.Id),
+			Name:    location.Name,
+			Address: location.Address,
+			Lat:     location.Lat,
+			Lng:     location.Lng,
+		}
 	}
 
 	dts := make([]*desc.Ticket, len(tickets))
@@ -87,6 +88,11 @@ func (impl EventServiceImplementation) bindModelsToDescEvent(event *model.Event,
 		}
 	}
 
+	description := &wrapperspb.StringValue{}
+	if event.Description.Valid {
+		description.Value = event.Description.String
+	}
+
 	de := &desc.Event{
 		Id:          string(event.Id),
 		Date:        timestamppb.New(event.Date),
@@ -94,7 +100,7 @@ func (impl EventServiceImplementation) bindModelsToDescEvent(event *model.Event,
 		Name:        event.Name,
 		Description: description,
 		Location:    dl,
-		Tickets:     nil,
+		Tickets:     dts,
 	}
 
 	return de

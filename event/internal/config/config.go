@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Port int
-	Env  string
+	DatabaseUrl string
+	Port        int
+	Env         string
 }
 
 var Data *Config
@@ -21,6 +22,8 @@ func Init() error {
 	if err != nil {
 		return errors.WithMessage(err, "invalid port")
 	}
+
+	Data.DatabaseUrl = os.Getenv("DATABASE_URL")
 
 	Data.Env = os.Getenv("ENV")
 
@@ -39,6 +42,10 @@ func Validate() error {
 
 	if Data.Env != "dev" && Data.Env != "prod" {
 		return errors.New("invalid env")
+	}
+
+	if Data.DatabaseUrl == "" {
+		return errors.New("invalid database url")
 	}
 
 	return nil

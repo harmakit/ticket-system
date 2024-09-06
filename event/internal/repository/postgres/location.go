@@ -44,7 +44,7 @@ func (r locationRepository) Find(ctx context.Context, id string) (*model.Locatio
 		return nil, err
 	}
 
-	rows, _ := db.Query(ctx, rawQuery, args)
+	rows, _ := db.Query(ctx, rawQuery, args...)
 	location, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Location])
 	if err != nil {
 		return nil, err

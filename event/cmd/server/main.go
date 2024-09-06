@@ -36,7 +36,7 @@ func main() {
 		panic("unable to initialize logger: " + err.Error())
 	}
 
-	connPool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+	connPool, err := pgxpool.New(ctx, config.Data.DatabaseUrl)
 	if err != nil {
 		logger.Fatal("unable to connect to database", zap.Error(err))
 	}

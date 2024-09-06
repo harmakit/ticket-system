@@ -26,6 +26,7 @@ func (r ticketRepository) getQueryBuilder() sq.StatementBuilderType {
 
 func (r ticketRepository) bindSchemaToModel(ticket *schema.Ticket) *model.Ticket {
 	return &model.Ticket{
+		Id:      model.UUID(ticket.Id),
 		EventId: model.UUID(ticket.EventId),
 		Name:    ticket.Name,
 		Price:   ticket.Price,
@@ -42,7 +43,7 @@ func (r ticketRepository) Find(ctx context.Context, id string) (*model.Ticket, e
 		return nil, err
 	}
 
-	rows, _ := db.Query(ctx, rawQuery, args)
+	rows, _ := db.Query(ctx, rawQuery, args...)
 	ticket, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Ticket])
 	if err != nil {
 		return nil, err
@@ -61,7 +62,7 @@ func (r ticketRepository) FindByEventId(ctx context.Context, eventId string) ([]
 		return nil, err
 	}
 
-	rows, _ := db.Query(ctx, rawQuery, args)
+	rows, _ := db.Query(ctx, rawQuery, args...)
 	tickets, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Ticket])
 	if err != nil {
 		return nil, err
