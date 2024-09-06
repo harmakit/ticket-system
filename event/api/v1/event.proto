@@ -7,6 +7,7 @@ option go_package = "ticket-system/event/api/v1";
 
 service EventService {
   rpc GetEvent(GetEventRequest) returns (GetEventResponse);
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
 }
 
 message GetEventRequest {
@@ -15,6 +16,16 @@ message GetEventRequest {
 
 message GetEventResponse {
   Event event = 1;
+}
+
+message ListEventsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  optional string location_id = 3;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
 }
 
 message Event {
@@ -39,4 +50,5 @@ message Ticket {
   string id = 1;
   string event_id = 2;
   float  price = 3;
+  string name = 4;
 }

@@ -45,10 +45,10 @@ func (r locationRepository) Find(ctx context.Context, id string) (*model.Locatio
 	}
 
 	rows, _ := db.Query(ctx, rawQuery, args)
-	Location, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Location])
+	location, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Location])
 	if err != nil {
 		return nil, err
 	}
 
-	return r.bindSchemaToModel(&Location), err
+	return r.bindSchemaToModel(&location), err
 }

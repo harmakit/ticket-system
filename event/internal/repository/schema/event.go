@@ -7,7 +7,7 @@ import (
 
 const EventTable = "event"
 
-var EventColumns = []string{"id", "date", "duration", "name", "description", "location_id"}
+var EventColumns = []string{"id", "start_date", "duration", "name", "description", "location_id"}
 
 type Event struct {
 	Id          string

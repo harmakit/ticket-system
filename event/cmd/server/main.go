@@ -74,8 +74,14 @@ func main() {
 
 func makeBusinessLogicService(db *postgres.TransactionManager) service.BusinessLogic {
 	er := repository.NewEventRepository(db)
+	lr := repository.NewLocationRepository(db)
+	tr := repository.NewTicketRepository(db)
+
 	es := service.NewEventService(er)
-	bl := service.New(es)
+	ls := service.NewLocationService(lr)
+	ts := service.NewTicketService(tr)
+
+	bl := service.New(es, ls, ts)
 
 	return bl
 }

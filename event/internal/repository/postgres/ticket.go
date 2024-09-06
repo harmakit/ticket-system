@@ -43,10 +43,34 @@ func (r ticketRepository) Find(ctx context.Context, id string) (*model.Ticket, e
 	}
 
 	rows, _ := db.Query(ctx, rawQuery, args)
-	Ticket, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Ticket])
+	ticket, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Ticket])
 	if err != nil {
 		return nil, err
 	}
 
-	return r.bindSchemaToModel(&Ticket), err
+	return r.bindSchemaToModel(&ticket), err
+}
+
+func (r ticketRepository) FindByEventId(ctx context.Context, eventId string) ([]*model.Ticket, error) {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Select(schema.TicketColumns...).From(schema.TicketTable).Where(sq.Eq{"event_id": eventId})
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, _ := db.Query(ctx, rawQuery, args)
+	tickets, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Ticket])
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*model.Ticket, len(tickets))
+	for i, ticket := range tickets {
+		res[i] = r.bindSchemaToModel(&ticket)
+	}
+
+	return res, err
 }

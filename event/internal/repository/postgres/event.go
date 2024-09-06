@@ -53,3 +53,36 @@ func (r eventRepository) Find(ctx context.Context, id string) (*model.Event, err
 
 	return r.bindSchemaToModel(&event), err
 }
+
+func (r eventRepository) FindBy(ctx context.Context, params repository.FindEventByParams) ([]*model.Event, error) {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Select(schema.EventColumns...).From(schema.EventTable)
+	if params.LocationId.Valid {
+		query = query.Where(sq.Eq{"location_id": params.LocationId})
+	}
+	if params.Limit > 0 {
+		query = query.Limit(uint64(params.Limit))
+	}
+	if params.Offset > 0 {
+		query = query.Offset(uint64(params.Offset))
+	}
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, _ := db.Query(ctx, rawQuery, args)
+	events, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Event])
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*model.Event, len(events))
+	for i, event := range events {
+		res[i] = r.bindSchemaToModel(&event)
+	}
+
+	return res, err
+}

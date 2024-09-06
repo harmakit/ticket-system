@@ -1,17 +1,14 @@
-DC = docker compose -p ticket-system -f ./.docker/docker-compose.yml
+up:
+	[ -d "event" ] && cd event && make up
 
-.PHONY: up
+up-debug:
+	[ -d "event" ] && cd event && make up-debug
 
-up: docker-up
+build:
+	[ -d "event" ] && cd event && make build
 
-build: build-event
-	${DC} build
+build-debug:
+	[ -d "event" ] && cd event && make build-debug
 
 down:
-	${DC} down
-
-docker-up:
-	${DC} up -d --force-recreate
-
-build-event:
-	make -C event -f Makefile build
+	[ -d "event" ] && cd event && make down

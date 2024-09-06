@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+
+# Build the application from source
+FROM golang:1.23 AS build-stage
+ENV CGO_ENABLED 0
+ENV GOBIN /app/event/bin
+
+WORKDIR /app/event
+
+RUN go env -w GOCACHE=/go-cache
+RUN go env -w GOMODCACHE=/gomod-cache
+
+COPY ./event .
+RUN --mount=type=cache,target=/gomod-cache  \
+    go mod download
+
+COPY ./lib /app/lib
+COPY ./go.work /app/go.work
+
+RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache  \
+    go build -o ./bin/server ./cmd/server
+RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
+    go build -o ./bin/migrate ./cmd/migrate
+
+# Run the tests in the container
+FROM build-stage AS run-test-stage
+RUN go test -v ./...
+
+# Deploy the application binary into a lean image
+FROM alpine:latest AS build-release-stage
+
+WORKDIR /
+
+COPY --from=build-stage /app/event/bin/server /server
+COPY --from=build-stage /app/event/bin/migrate /migrate
+COPY --from=build-stage /app/event/config.yml /config.yml
+COPY --from=build-stage /app/event/db/migrations /migrations
+
+CMD ["/server"]

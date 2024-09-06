@@ -5,8 +5,8 @@ networks:
 services:
   event:
     build:
-      context: ../event
-      dockerfile: ../event/.docker/Dockerfile
+      context: ../../
+      dockerfile: event/.docker/Dockerfile.multistage
     ports:
       - 50600:50600
     networks:
@@ -20,7 +20,7 @@ services:
   event_db:
     image: postgres
     ports:
-      - 5432:5432
+      - 50601:5432
     volumes:
       - ../event/.docker/data:/var/lib/postgresql/data
     environment:

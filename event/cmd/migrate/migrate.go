@@ -38,7 +38,6 @@ func main() {
 	}
 	defer connPool.Close()
 
-	//connStr := fmt.Sprintf("pgx5://%s", os.Getenv("DATABASE_URL"))
 	db, err := sql.Open("pgx/v5", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		logger.Fatal("unable to connect to database", zap.Error(err))

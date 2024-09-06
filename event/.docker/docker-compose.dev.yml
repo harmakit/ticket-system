@@ -1,0 +1,10 @@
+services:
+  event:
+    build:
+      dockerfile: event/.docker/Dockerfile.dev.multistage
+    security_opt:
+      - apparmor=unconfined
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - 50602:50602
