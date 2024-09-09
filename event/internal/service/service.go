@@ -32,9 +32,10 @@ func (s *BusinessLogic) GetTicketsForEvent(ctx context.Context, event *model.Eve
 }
 
 func (s *BusinessLogic) ListEvents(ctx context.Context, limit, offset int, locationId *string) ([]*model.Event, []*model.Location, [][]*model.Ticket, error) {
-	filter := ListEventsFilter{}
-	filter.Limit = limit
-	filter.Offset = offset
+	filter := ListEventsFilter{
+		Limit:  limit,
+		Offset: offset,
+	}
 	if locationId != nil {
 		filter.LocationId.Use = true
 		filter.LocationId.Id = model.UUID(*locationId)
@@ -45,21 +46,41 @@ func (s *BusinessLogic) ListEvents(ctx context.Context, limit, offset int, locat
 		return nil, nil, nil, err
 	}
 
-	locations := make([]*model.Location, len(events))
-	tickets := make([][]*model.Ticket, len(events))
+	locChan := make(chan []*model.Location, 1)
+	ticketChan := make(chan [][]*model.Ticket, 1)
+	errChan := make(chan error, 2)
 
-	for i, event := range events { // todo: worker pool
-		if event.LocationId.Valid {
-			locations[i], err = s.locationService.GetLocation(ctx, model.UUID(event.LocationId.String))
-			if err != nil {
-				return nil, nil, nil, err
-			}
-		}
-		tickets[i], err = s.ticketService.GetTicketsForEvent(ctx, event)
+	go func() {
+		locations, err := s.locationService.GetLocationsForEvents(ctx, events)
 		if err != nil {
+			errChan <- err
+			return
+		}
+		locChan <- locations
+	}()
+
+	go func() {
+		tickets, err := s.ticketService.GetTicketsForEvents(ctx, events)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		ticketChan <- tickets
+	}()
+
+	var locations []*model.Location
+	var tickets [][]*model.Ticket
+
+	for i := 0; i < 2; i++ {
+		select {
+		case err := <-errChan:
 			return nil, nil, nil, err
+		case locs := <-locChan:
+			locations = locs
+		case tics := <-ticketChan:
+			tickets = tics
 		}
 	}
 
-	return events, locations, tickets, err
+	return events, locations, tickets, nil
 }

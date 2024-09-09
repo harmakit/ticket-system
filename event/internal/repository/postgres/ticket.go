@@ -4,6 +4,7 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/pkg/errors"
 	"ticket-system/event/internal/model"
 	"ticket-system/event/internal/repository"
 	"ticket-system/event/internal/repository/schema"
@@ -46,6 +47,9 @@ func (r ticketRepository) Find(ctx context.Context, id string) (*model.Ticket, e
 	rows, _ := db.Query(ctx, rawQuery, args...)
 	ticket, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Ticket])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
 		return nil, err
 	}
 
@@ -65,6 +69,9 @@ func (r ticketRepository) FindByEventId(ctx context.Context, eventId string) ([]
 	rows, _ := db.Query(ctx, rawQuery, args...)
 	tickets, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Ticket])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
 		return nil, err
 	}
 

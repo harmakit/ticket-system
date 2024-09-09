@@ -11,7 +11,7 @@ var EventColumns = []string{"id", "start_date", "duration", "name", "description
 
 type Event struct {
 	Id          string
-	Date        time.Time
+	StartDate   time.Time
 	Duration    int
 	Name        string
 	Description sql.NullString

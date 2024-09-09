@@ -4,6 +4,7 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/pkg/errors"
 	"ticket-system/event/internal/model"
 	"ticket-system/event/internal/repository"
 	"ticket-system/event/internal/repository/schema"
@@ -47,6 +48,9 @@ func (r locationRepository) Find(ctx context.Context, id string) (*model.Locatio
 	rows, _ := db.Query(ctx, rawQuery, args...)
 	location, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Location])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
 		return nil, err
 	}
 

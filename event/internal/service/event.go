@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"github.com/pkg/errors"
 	"ticket-system/event/internal/model"
 	"ticket-system/event/internal/repository"
 )
@@ -44,5 +45,13 @@ func (s *eventService) GetEvents(ctx context.Context, filter ListEventsFilter) (
 			Valid:  filter.LocationId.Use,
 		},
 	}
-	return s.eventRepository.FindBy(ctx, params)
+
+	events, err := s.eventRepository.FindBy(ctx, params)
+	if err != nil {
+		if errors.Is(err, repository.ErrNoRows) {
+			return nil, nil
+		}
+	}
+
+	return events, err
 }

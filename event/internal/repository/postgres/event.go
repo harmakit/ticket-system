@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"ticket-system/event/internal/model"
@@ -27,7 +28,7 @@ func (r eventRepository) getQueryBuilder() sq.StatementBuilderType {
 func (r eventRepository) bindSchemaToModel(event *schema.Event) *model.Event {
 	return &model.Event{
 		Id:          model.UUID(event.Id),
-		Date:        event.Date,
+		Date:        event.StartDate,
 		Duration:    event.Duration,
 		Name:        event.Name,
 		Description: event.Description,
@@ -48,6 +49,9 @@ func (r eventRepository) Find(ctx context.Context, id string) (*model.Event, err
 	rows, _ := db.Query(ctx, rawQuery, args...)
 	event, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Event])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
 		return nil, err
 	}
 
@@ -76,6 +80,9 @@ func (r eventRepository) FindBy(ctx context.Context, params repository.FindEvent
 	rows, _ := db.Query(ctx, rawQuery, args...)
 	events, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Event])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
 		return nil, err
 	}
 
