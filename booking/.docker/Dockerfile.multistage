@@ -3,16 +3,16 @@
 # Build the application from source
 FROM golang:1.23 AS build-stage
 ENV CGO_ENABLED 0
-ENV GOBIN /app/event/bin
+ENV GOBIN /app/booking/bin
 
-WORKDIR /app/event
+WORKDIR /app/booking
 
 RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 
-COPY ./event .
+COPY ./booking .
 
-COPY ./booking/go.mod ./booking/pkg ../booking/
+COPY ./event/go.mod ./event/pkg ../event/
 COPY ./checkout/go.mod ./checkout/pkg ../checkout/
 
 RUN --mount=type=cache,target=/gomod-cache  \
@@ -35,8 +35,8 @@ FROM alpine:latest AS build-release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /app/event/bin/server /server
-COPY --from=build-stage /app/event/bin/migrate /migrate
-COPY --from=build-stage /app/event/db/migrations /migrations
+COPY --from=build-stage /app/booking/bin/server /server
+COPY --from=build-stage /app/booking/bin/migrate /migrate
+COPY --from=build-stage /app/booking/db/migrations /migrations
 
 CMD ["/server"]

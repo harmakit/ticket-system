@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"github.com/pkg/errors"
 	"ticket-system/event/internal/model"
 	"ticket-system/event/internal/repository"
@@ -10,11 +9,6 @@ import (
 
 type eventService struct {
 	eventRepository repository.EventRepository
-}
-
-type EventService interface {
-	GetEvent(ctx context.Context, uuid model.UUID) (*model.Event, error)
-	GetEvents(ctx context.Context, filter ListEventsFilter) ([]*model.Event, error)
 }
 
 func NewEventService(eventRepository repository.EventRepository) EventService {
@@ -28,20 +22,20 @@ type ListEventsFilter struct {
 	Limit      int
 	LocationId struct {
 		Use bool
-		Id  model.UUID
+		Val model.UUID
 	}
 }
 
 func (s *eventService) GetEvent(ctx context.Context, uuid model.UUID) (*model.Event, error) {
-	return s.eventRepository.Find(ctx, string(uuid))
+	return s.eventRepository.Find(ctx, uuid)
 }
 
 func (s *eventService) GetEvents(ctx context.Context, filter ListEventsFilter) ([]*model.Event, error) {
-	params := repository.FindEventByParams{
+	params := repository.FindEventsByParams{
 		Offset: filter.Offset,
 		Limit:  filter.Limit,
-		LocationId: sql.NullString{
-			String: string(filter.LocationId.Id),
+		LocationId: repository.NullUUID{
+			String: filter.LocationId.Val,
 			Valid:  filter.LocationId.Use,
 		},
 	}

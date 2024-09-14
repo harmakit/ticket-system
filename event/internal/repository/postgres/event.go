@@ -25,18 +25,18 @@ func (r eventRepository) getQueryBuilder() sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }
 
-func (r eventRepository) bindSchemaToModel(event *schema.Event) *model.Event {
+func (r eventRepository) bindSchemaToModel(e *schema.Event) *model.Event {
 	return &model.Event{
-		Id:          model.UUID(event.Id),
-		Date:        event.StartDate,
-		Duration:    event.Duration,
-		Name:        event.Name,
-		Description: event.Description,
-		LocationId:  event.LocationId,
+		Id:          model.UUID(e.Id),
+		Date:        e.StartDate,
+		Duration:    e.Duration,
+		Name:        e.Name,
+		Description: e.Description,
+		LocationId:  e.LocationId,
 	}
 }
 
-func (r eventRepository) Find(ctx context.Context, id string) (*model.Event, error) {
+func (r eventRepository) Find(ctx context.Context, id model.UUID) (*model.Event, error) {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.EventColumns...).From(schema.EventTable).Where(sq.Eq{"id": id})
@@ -58,7 +58,7 @@ func (r eventRepository) Find(ctx context.Context, id string) (*model.Event, err
 	return r.bindSchemaToModel(&event), err
 }
 
-func (r eventRepository) FindBy(ctx context.Context, params repository.FindEventByParams) ([]*model.Event, error) {
+func (r eventRepository) FindBy(ctx context.Context, params repository.FindEventsByParams) ([]*model.Event, error) {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.EventColumns...).From(schema.EventTable)

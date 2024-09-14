@@ -25,17 +25,17 @@ func (r locationRepository) getQueryBuilder() sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }
 
-func (r locationRepository) bindSchemaToModel(location *schema.Location) *model.Location {
+func (r locationRepository) bindSchemaToModel(l *schema.Location) *model.Location {
 	return &model.Location{
-		Id:      model.UUID(location.Id),
-		Name:    location.Name,
-		Address: location.Address,
-		Lat:     location.Lat,
-		Lng:     location.Lng,
+		Id:      model.UUID(l.Id),
+		Name:    l.Name,
+		Address: l.Address,
+		Lat:     l.Lat,
+		Lng:     l.Lng,
 	}
 }
 
-func (r locationRepository) Find(ctx context.Context, id string) (*model.Location, error) {
+func (r locationRepository) Find(ctx context.Context, id model.UUID) (*model.Location, error) {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.LocationColumns...).From(schema.LocationTable).Where(sq.Eq{"id": id})

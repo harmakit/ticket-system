@@ -12,11 +12,6 @@ type ticketService struct {
 	ticketRepository repository.TicketRepository
 }
 
-type TicketService interface {
-	GetTicketsForEvent(ctx context.Context, event *model.Event) ([]*model.Ticket, error)
-	GetTicketsForEvents(ctx context.Context, events []*model.Event) ([][]*model.Ticket, error)
-}
-
 func NewTicketService(ticketRepository repository.TicketRepository) TicketService {
 	return &ticketService{
 		ticketRepository,
@@ -24,7 +19,7 @@ func NewTicketService(ticketRepository repository.TicketRepository) TicketServic
 }
 
 func (s *ticketService) GetTicketsForEvent(ctx context.Context, event *model.Event) ([]*model.Ticket, error) {
-	tickets, err := s.ticketRepository.FindByEventId(ctx, string(event.Id))
+	tickets, err := s.ticketRepository.FindByEventId(ctx, event.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNoRows) {
 			return nil, nil

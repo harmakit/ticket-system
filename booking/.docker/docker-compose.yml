@@ -1,0 +1,32 @@
+networks:
+  ticket-system:
+    driver: bridge
+
+services:
+  booking:
+    build:
+      context: ../../
+      dockerfile: booking/.docker/Dockerfile.multistage
+    ports:
+      - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
+    networks:
+      - ticket-system
+    depends_on:
+      - booking_db
+    restart: on-failure
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@booking_db:5432/${POSTGRES_DB}
+    env_file:
+      - ../.env
+
+  booking_db:
+    image: postgres
+    ports:
+      - ${EXPOSE_DB_PORT}:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
+    networks:
+      - ticket-system
+    restart: unless-stopped

@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS booking;
+
+DROP TABLE IF EXISTS stock;

@@ -5,6 +5,21 @@ import (
 	"ticket-system/event/internal/model"
 )
 
+type EventService interface {
+	GetEvent(ctx context.Context, uuid model.UUID) (*model.Event, error)
+	GetEvents(ctx context.Context, filter ListEventsFilter) ([]*model.Event, error)
+}
+
+type LocationService interface {
+	GetLocation(ctx context.Context, uuid model.UUID) (*model.Location, error)
+	GetLocationsForEvents(ctx context.Context, events []*model.Event) ([]*model.Location, error)
+}
+
+type TicketService interface {
+	GetTicketsForEvent(ctx context.Context, event *model.Event) ([]*model.Ticket, error)
+	GetTicketsForEvents(ctx context.Context, events []*model.Event) ([][]*model.Ticket, error)
+}
+
 type BusinessLogic struct {
 	eventService    EventService
 	locationService LocationService
@@ -38,7 +53,7 @@ func (s *BusinessLogic) ListEvents(ctx context.Context, limit, offset int, locat
 	}
 	if locationId != nil {
 		filter.LocationId.Use = true
-		filter.LocationId.Id = model.UUID(*locationId)
+		filter.LocationId.Val = model.UUID(*locationId)
 	}
 
 	events, err := s.eventService.GetEvents(ctx, filter)

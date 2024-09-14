@@ -1,0 +1,84 @@
+syntax = "proto3";
+package booking.api.v1;
+
+import "google/protobuf/timestamp.proto";
+option go_package = "ticket-system/booking/api/v1";
+
+service BookingService {
+  rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
+  rpc CreateStock(CreateStockRequest) returns (CreateStockResponse);
+  rpc GetBookings(GetOrderBookingsRequest) returns (GetOrderBookingsResponse);
+  rpc GetStocks(GetStocksRequest) returns (GetStocksResponse);
+  rpc GetStock(GetStockRequest) returns (GetStockResponse);
+}
+
+message CreateStockRequest {
+  string eventId = 1;
+  string ticketId = 2;
+  int32 seats = 3;
+}
+
+message CreateStockResponse {
+  string id = 1;
+}
+
+message GetStocksRequest {
+  string eventId = 1;
+  optional string ticketId = 2;
+}
+
+message GetStocksResponse {
+  repeated Stock stocks = 1;
+}
+
+message GetStockRequest {
+  string id = 1;
+}
+
+message GetStockResponse {
+  Stock stock = 1;
+}
+
+message CreateBookingRequest {
+  string eventId = 1;
+  string ticketId = 2;
+  string userId = 3;
+  string orderId = 4;
+  int32 count = 5;
+}
+
+message CreateBookingResponse {
+  string id = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp expiredAt = 3;
+}
+
+message GetOrderBookingsRequest {
+  string eventId = 1;
+  string ticketId = 2;
+  string orderId = 3;
+  string userId = 4;
+  bool withExpired = 5;
+}
+
+message GetOrderBookingsResponse {
+  repeated Booking bookings = 1;
+}
+
+message Stock {
+  string id = 1;
+  string eventId = 2;
+  string ticketId = 3;
+  int32 seatsTotal = 4;
+  int32 seatsBooked = 5;
+}
+
+message Booking {
+  string id = 1;
+  string stockId = 2;
+  string userId = 3;
+  string orderId = 4;
+  int32 count = 5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp expiredAt = 7;
+}

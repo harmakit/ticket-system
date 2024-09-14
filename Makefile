@@ -1,14 +1,11 @@
-up:
-	[ -d "event" ] && cd event && make up
+start:
+	[ -d "event" ] && cd event && make build && make up && make migrate
+	[ -d "booking" ] && cd booking && make build && make up && make migrate
 
-up-debug:
-	[ -d "event" ] && cd event && make up-debug
+start-debug:
+	[ -d "event" ] && cd event && make build-debug && make up-debug && make migrate
+	[ -d "booking" ] && cd booking && make build-debug && make up-debug && make migrate
 
-build:
-	[ -d "event" ] && cd event && make build
-
-build-debug:
-	[ -d "event" ] && cd event && make build-debug
-
-down:
+stop:
 	[ -d "event" ] && cd event && make down
+	[ -d "booking" ] && cd booking && make down

@@ -25,16 +25,16 @@ func (r ticketRepository) getQueryBuilder() sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }
 
-func (r ticketRepository) bindSchemaToModel(ticket *schema.Ticket) *model.Ticket {
+func (r ticketRepository) bindSchemaToModel(t *schema.Ticket) *model.Ticket {
 	return &model.Ticket{
-		Id:      model.UUID(ticket.Id),
-		EventId: model.UUID(ticket.EventId),
-		Name:    ticket.Name,
-		Price:   ticket.Price,
+		Id:      model.UUID(t.Id),
+		EventId: model.UUID(t.EventId),
+		Name:    t.Name,
+		Price:   t.Price,
 	}
 }
 
-func (r ticketRepository) Find(ctx context.Context, id string) (*model.Ticket, error) {
+func (r ticketRepository) Find(ctx context.Context, id model.UUID) (*model.Ticket, error) {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.TicketColumns...).From(schema.TicketTable).Where(sq.Eq{"id": id})
@@ -56,7 +56,7 @@ func (r ticketRepository) Find(ctx context.Context, id string) (*model.Ticket, e
 	return r.bindSchemaToModel(&ticket), err
 }
 
-func (r ticketRepository) FindByEventId(ctx context.Context, eventId string) ([]*model.Ticket, error) {
+func (r ticketRepository) FindByEventId(ctx context.Context, eventId model.UUID) ([]*model.Ticket, error) {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.TicketColumns...).From(schema.TicketTable).Where(sq.Eq{"event_id": eventId})

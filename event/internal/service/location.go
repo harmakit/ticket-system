@@ -12,11 +12,6 @@ type locationService struct {
 	locationRepository repository.LocationRepository
 }
 
-type LocationService interface {
-	GetLocation(ctx context.Context, uuid model.UUID) (*model.Location, error)
-	GetLocationsForEvents(ctx context.Context, events []*model.Event) ([]*model.Location, error)
-}
-
 func NewLocationService(locationRepository repository.LocationRepository) LocationService {
 	return &locationService{
 		locationRepository,
@@ -24,7 +19,7 @@ func NewLocationService(locationRepository repository.LocationRepository) Locati
 }
 
 func (s *locationService) GetLocation(ctx context.Context, uuid model.UUID) (*model.Location, error) {
-	location, err := s.locationRepository.Find(ctx, string(uuid))
+	location, err := s.locationRepository.Find(ctx, uuid)
 	if err != nil {
 		if errors.Is(err, repository.ErrNoRows) {
 			return nil, nil

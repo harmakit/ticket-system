@@ -40,7 +40,7 @@ func (impl EventServiceImplementation) GetEvent(ctx context.Context, req *desc.G
 		return nil, err
 	}
 
-	res.Event = impl.bindModelsToDescEvent(event, location, tickets)
+	res.Event = impl.bindModelToDescEvent(event, location, tickets)
 
 	return &res, nil
 }
@@ -56,13 +56,13 @@ func (impl EventServiceImplementation) ListEvents(ctx context.Context, req *desc
 	res.Events = make([]*desc.Event, len(events))
 
 	for i := range len(res.Events) {
-		res.Events[i] = impl.bindModelsToDescEvent(events[i], locations[i], tickets[i])
+		res.Events[i] = impl.bindModelToDescEvent(events[i], locations[i], tickets[i])
 	}
 
 	return &res, nil
 }
 
-func (impl EventServiceImplementation) bindModelsToDescEvent(event *model.Event, location *model.Location, tickets []*model.Ticket) *desc.Event {
+func (impl EventServiceImplementation) bindModelToDescEvent(event *model.Event, location *model.Location, tickets []*model.Ticket) *desc.Event {
 	if event == nil {
 		return nil
 	}
