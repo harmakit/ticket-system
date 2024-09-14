@@ -1,6 +1,9 @@
 package main
 
-import "os/signal"
+import (
+	"github.com/pkg/errors"
+	"os/signal"
+)
 
 import (
 	"context"
@@ -56,9 +59,8 @@ func main() {
 	}
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && !errors.Is(err, gomigrate.ErrNoChange) {
 		logger.Fatal("unable to run migrations", zap.Error(err))
 	}
-
 	logger.Info("database migrated")
 }
