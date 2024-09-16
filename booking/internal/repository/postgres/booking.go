@@ -64,12 +64,25 @@ func (r bookingRepository) FindBy(ctx context.Context, params repository.FindBoo
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Select(schema.BookingColumns...).From(schema.BookingTable)
-	query = query.Where(sq.Eq{"stock_id": params.StockId})
-	query = query.Where(sq.Eq{"user_id": params.UserId})
-	query = query.Where(sq.Eq{"order_id": params.OrderId})
-
-	if !params.WithExpired {
+	if params.StockId.Valid {
+		query = query.Where(sq.Eq{"stock_id": params.StockId.Value})
+	}
+	if params.OrderId.Valid {
+		query = query.Where(sq.Eq{"order_id": params.OrderId.Value})
+	}
+	if params.UserId.Valid {
+		query = query.Where(sq.Eq{"user_id": params.UserId.Value})
+	}
+	if params.OnlyExpired {
+		query = query.Where(sq.Lt{"expired_at": time.Now()})
+	} else if !params.WithExpired {
 		query = query.Where(sq.Gt{"expired_at": time.Now()})
+	}
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+	}
+	if params.Offset > 0 {
+		query = query.Offset(params.Offset)
 	}
 
 	rawQuery, args, err := query.ToSql()
@@ -115,4 +128,22 @@ func (r bookingRepository) Create(ctx context.Context, b *model.Booking) error {
 	*b = *r.bindSchemaToModel(&nb)
 
 	return nil
+}
+
+func (r bookingRepository) BatchDelete(ctx context.Context, bookings []*model.Booking) error {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	ids := make([]model.UUID, len(bookings))
+	for i, booking := range bookings {
+		ids[i] = booking.Id
+	}
+	query := r.getQueryBuilder().Delete(schema.BookingTable).Where(sq.Eq{"id": ids})
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, rawQuery, args...)
+	return err
 }

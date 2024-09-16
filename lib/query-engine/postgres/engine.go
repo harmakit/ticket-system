@@ -38,6 +38,10 @@ func (tm *TransactionManager) RunRepeatableRead(ctx context.Context, fx func(ctx
 	return tm.runWithIsolationLevel(ctx, pgx.RepeatableRead, fx)
 }
 
+func (tm *TransactionManager) RunReadCommitted(ctx context.Context, fx func(ctxTX context.Context) error) error {
+	return tm.runWithIsolationLevel(ctx, pgx.ReadCommitted, fx)
+}
+
 func (tm *TransactionManager) runWithIsolationLevel(ctx context.Context, isoLevel pgx.TxIsoLevel, fx func(ctxTX context.Context) error) error {
 	tx, err := tm.pool.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: isoLevel,

@@ -2,14 +2,21 @@ syntax = "proto3";
 package booking.api.v1;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 option go_package = "ticket-system/booking/api/v1";
 
 service BookingService {
   rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
-  rpc CreateStock(CreateStockRequest) returns (CreateStockResponse);
   rpc GetBookings(GetOrderBookingsRequest) returns (GetOrderBookingsResponse);
+  rpc DeleteOrderBookings(DeleteOrderBookingsRequest) returns (google.protobuf.Empty);
+  rpc CreateStock(CreateStockRequest) returns (CreateStockResponse);
   rpc GetStocks(GetStocksRequest) returns (GetStocksResponse);
   rpc GetStock(GetStockRequest) returns (GetStockResponse);
+}
+
+message DeleteOrderBookingsRequest {
+  string orderId = 1;
+  string userId = 2;
 }
 
 message CreateStockRequest {

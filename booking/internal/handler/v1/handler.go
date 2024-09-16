@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"ticket-system/booking/internal/model"
 	"ticket-system/booking/internal/service"
@@ -120,6 +121,17 @@ func (impl BookingServiceImplementation) CreateBooking(ctx context.Context, req 
 	res.Id = string(booking.Id)
 	res.CreatedAt = timestamppb.New(booking.CreatedAt)
 	res.ExpiredAt = timestamppb.New(booking.ExpiredAt)
+
+	return &res, nil
+}
+
+func (impl BookingServiceImplementation) DeleteOrderBookings(ctx context.Context, req *desc.DeleteOrderBookingsRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+
+	err := impl.bl.DeleteOrderBookings(ctx, model.UUID(req.OrderId), model.UUID(req.UserId))
+	if err != nil {
+		return nil, err
+	}
 
 	return &res, nil
 }

@@ -13,6 +13,7 @@ import (
 	"ticket-system/booking/internal/config"
 	handlerv1 "ticket-system/booking/internal/handler/v1"
 	repository "ticket-system/booking/internal/repository/postgres"
+	"ticket-system/booking/internal/scheduler"
 	"ticket-system/booking/internal/service"
 	v1 "ticket-system/booking/pkg/v1"
 	"ticket-system/lib/interceptor"
@@ -50,6 +51,11 @@ func main() {
 
 	bls := makeBusinessLogicService(db)
 
+	sc, err := scheduler.Init(ctx, bls)
+	if err != nil {
+		logger.Fatal("failed to initialize scheduler", zap.Error(err))
+	}
+
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.LoggingInterceptor,
@@ -68,8 +74,11 @@ func main() {
 		}
 	}()
 
+	sc.Start()
+
 	<-ctx.Done()
 	s.GracefulStop()
+	_ = sc.Shutdown()
 }
 
 func makeBusinessLogicService(db *postgres.TransactionManager) service.BusinessLogic {

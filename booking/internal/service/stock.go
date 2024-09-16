@@ -25,8 +25,8 @@ func (s stockService) ListStocks(ctx context.Context, eventId model.UUID, ticket
 		EventId: eventId,
 	}
 	if ticketId != nil {
-		filter.TicketId.Use = true
-		filter.TicketId.Val = *ticketId
+		filter.TicketId.Valid = true
+		filter.TicketId.Value = *ticketId
 	}
 
 	return s.stockRepository.FindBy(ctx, filter)
@@ -40,6 +40,19 @@ func (s stockService) UpdateStock(ctx context.Context, stock *model.Stock) error
 	return s.stockRepository.Update(ctx, stock)
 }
 
-func (s stockService) AddBookedSeats(ctx context.Context, stock *model.Stock, quantity int) error {
-	return s.stockRepository.AddBookedSeats(ctx, stock, quantity)
+func (s stockService) ModifyBookedSeats(ctx context.Context, stock *model.Stock, quantity int) error {
+	err := s.stockRepository.ModifyBookedSeats(ctx, stock, quantity)
+	if err != nil {
+		return err
+	}
+
+	if stock.SeatsBooked > stock.SeatsTotal {
+		return ErrStockIsNotEnough
+	}
+
+	if stock.SeatsBooked < 0 {
+		return ErrStockIsNegative
+	}
+
+	return nil
 }

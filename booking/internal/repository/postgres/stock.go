@@ -85,8 +85,8 @@ func (r stockRepository) FindBy(ctx context.Context, filter repository.FindStock
 
 	query := r.getQueryBuilder().Select(schema.StockColumns...).From(schema.StockTable)
 	query = query.Where(sq.Eq{"event_id": filter.EventId})
-	if filter.TicketId.Use {
-		query = query.Where(sq.Eq{"ticket_id": filter.TicketId.Val})
+	if filter.TicketId.Valid {
+		query = query.Where(sq.Eq{"ticket_id": filter.TicketId.Value})
 	}
 
 	rawQuery, args, err := query.ToSql()
@@ -138,7 +138,7 @@ func (r stockRepository) Update(ctx context.Context, s *model.Stock) error {
 	return nil
 }
 
-func (r stockRepository) AddBookedSeats(ctx context.Context, s *model.Stock, quantity int) error {
+func (r stockRepository) ModifyBookedSeats(ctx context.Context, s *model.Stock, quantity int) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Update(schema.StockTable).

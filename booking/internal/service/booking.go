@@ -25,12 +25,31 @@ func (s bookingService) CreateBooking(ctx context.Context, booking *model.Bookin
 	return s.bookingRepository.Create(ctx, booking)
 }
 
-func (s bookingService) ListBookings(ctx context.Context, stockId model.UUID, orderId model.UUID, userId model.UUID, expired bool) ([]*model.Booking, error) {
+func (s bookingService) ListBookings(ctx context.Context, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error) {
 	filter := repository.FindBookingsByParams{
-		StockId:     stockId,
-		OrderId:     orderId,
-		UserId:      userId,
 		WithExpired: expired,
 	}
+	if stockId != nil {
+		filter.StockId = repository.NullUUID{Valid: true, Value: *stockId}
+	}
+	if orderId != nil {
+		filter.OrderId = repository.NullUUID{Valid: true, Value: *orderId}
+	}
+	if userId != nil {
+		filter.UserId = repository.NullUUID{Valid: true, Value: *userId}
+	}
 	return s.bookingRepository.FindBy(ctx, filter)
+}
+
+func (s bookingService) ListExpiredBookings(ctx context.Context, limit uint64, offset uint64) ([]*model.Booking, error) {
+	filter := repository.FindBookingsByParams{
+		OnlyExpired: true,
+		Limit:       limit,
+		Offset:      offset,
+	}
+	return s.bookingRepository.FindBy(ctx, filter)
+}
+
+func (s bookingService) DeleteBookings(ctx context.Context, bookings []*model.Booking) error {
+	return s.bookingRepository.BatchDelete(ctx, bookings)
 }

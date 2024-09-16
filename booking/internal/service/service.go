@@ -11,12 +11,14 @@ type StockService interface {
 	ListStocks(ctx context.Context, eventId model.UUID, ticketId *model.UUID) ([]*model.Stock, error)
 	CreateStock(ctx context.Context, stock *model.Stock) error
 	UpdateStock(ctx context.Context, stock *model.Stock) error
-	AddBookedSeats(ctx context.Context, stock *model.Stock, count int) error
+	ModifyBookedSeats(ctx context.Context, stock *model.Stock, count int) error
 }
 
 type BookingService interface {
 	CreateBooking(ctx context.Context, booking *model.Booking) error
-	ListBookings(ctx context.Context, stockId model.UUID, id model.UUID, userId model.UUID, expired bool) ([]*model.Booking, error)
+	ListBookings(ctx context.Context, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error)
+	ListExpiredBookings(ctx context.Context, limit uint64, offset uint64) ([]*model.Booking, error)
+	DeleteBookings(ctx context.Context, bookings []*model.Booking) error
 }
 
 type BusinessLogic struct {
@@ -73,13 +75,9 @@ func (s *BusinessLogic) CreateBooking(ctx context.Context, stock *model.Stock, u
 	var booking *model.Booking
 
 	err := s.transactionManager.RunRepeatableRead(ctx, func(ctxTX context.Context) error {
-		err := s.stockService.AddBookedSeats(ctxTX, stock, count)
+		err := s.stockService.ModifyBookedSeats(ctxTX, stock, count)
 		if err != nil {
 			return err
-		}
-
-		if stock.SeatsBooked > stock.SeatsTotal {
-			return ErrStockIsNotEnough
 		}
 
 		booking = &model.Booking{
@@ -106,5 +104,66 @@ func (s *BusinessLogic) CreateBooking(ctx context.Context, stock *model.Stock, u
 }
 
 func (s *BusinessLogic) ListBookings(ctx context.Context, stockId model.UUID, orderId model.UUID, userId model.UUID, withExpired bool) ([]*model.Booking, error) {
-	return s.bookingService.ListBookings(ctx, stockId, orderId, userId, withExpired)
+	return s.bookingService.ListBookings(ctx, &stockId, &orderId, &userId, withExpired)
+}
+
+func (s *BusinessLogic) RemoveExpiredBookings(ctx context.Context) error {
+	var limit uint64 = 100
+	var offset uint64 = 0
+
+	for {
+		var bookings []*model.Booking
+		err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
+			var err error
+			bookings, err = s.bookingService.ListExpiredBookings(ctxTX, limit, offset)
+			if err != nil {
+				return err
+			}
+
+			if len(bookings) == 0 {
+				return nil
+			}
+
+			for _, booking := range bookings {
+				stock, err := s.stockService.GetStock(ctxTX, booking.StockId)
+				if err != nil {
+					return err
+				}
+
+				err = s.stockService.ModifyBookedSeats(ctxTX, stock, -booking.Count)
+				if err != nil {
+					return err
+				}
+			}
+
+			err = s.bookingService.DeleteBookings(ctxTX, bookings)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if len(bookings) == 0 {
+			break
+		}
+
+		offset += limit
+	}
+
+	return nil
+}
+
+func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID) error {
+	return s.transactionManager.RunRepeatableRead(ctx, func(ctxTX context.Context) error {
+		bookings, err := s.bookingService.ListBookings(ctxTX, nil, &orderId, &userId, true)
+		if err != nil {
+			return err
+		}
+		return s.bookingService.DeleteBookings(ctxTX, bookings)
+	})
 }

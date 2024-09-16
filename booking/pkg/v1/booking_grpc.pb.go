@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,8 +24,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BookingServiceClient interface {
 	CreateBooking(ctx context.Context, in *CreateBookingRequest, opts ...grpc.CallOption) (*CreateBookingResponse, error)
-	CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error)
 	GetBookings(ctx context.Context, in *GetOrderBookingsRequest, opts ...grpc.CallOption) (*GetOrderBookingsResponse, error)
+	DeleteOrderBookings(ctx context.Context, in *DeleteOrderBookingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error)
 	GetStocks(ctx context.Context, in *GetStocksRequest, opts ...grpc.CallOption) (*GetStocksResponse, error)
 	GetStock(ctx context.Context, in *GetStockRequest, opts ...grpc.CallOption) (*GetStockResponse, error)
 }
@@ -46,18 +48,27 @@ func (c *bookingServiceClient) CreateBooking(ctx context.Context, in *CreateBook
 	return out, nil
 }
 
-func (c *bookingServiceClient) CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error) {
-	out := new(CreateStockResponse)
-	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/CreateStock", in, out, opts...)
+func (c *bookingServiceClient) GetBookings(ctx context.Context, in *GetOrderBookingsRequest, opts ...grpc.CallOption) (*GetOrderBookingsResponse, error) {
+	out := new(GetOrderBookingsResponse)
+	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/GetBookings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *bookingServiceClient) GetBookings(ctx context.Context, in *GetOrderBookingsRequest, opts ...grpc.CallOption) (*GetOrderBookingsResponse, error) {
-	out := new(GetOrderBookingsResponse)
-	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/GetBookings", in, out, opts...)
+func (c *bookingServiceClient) DeleteOrderBookings(ctx context.Context, in *DeleteOrderBookingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/DeleteOrderBookings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookingServiceClient) CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error) {
+	out := new(CreateStockResponse)
+	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/CreateStock", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +98,9 @@ func (c *bookingServiceClient) GetStock(ctx context.Context, in *GetStockRequest
 // for forward compatibility
 type BookingServiceServer interface {
 	CreateBooking(context.Context, *CreateBookingRequest) (*CreateBookingResponse, error)
-	CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error)
 	GetBookings(context.Context, *GetOrderBookingsRequest) (*GetOrderBookingsResponse, error)
+	DeleteOrderBookings(context.Context, *DeleteOrderBookingsRequest) (*emptypb.Empty, error)
+	CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error)
 	GetStocks(context.Context, *GetStocksRequest) (*GetStocksResponse, error)
 	GetStock(context.Context, *GetStockRequest) (*GetStockResponse, error)
 	mustEmbedUnimplementedBookingServiceServer()
@@ -101,11 +113,14 @@ type UnimplementedBookingServiceServer struct {
 func (UnimplementedBookingServiceServer) CreateBooking(context.Context, *CreateBookingRequest) (*CreateBookingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBooking not implemented")
 }
-func (UnimplementedBookingServiceServer) CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateStock not implemented")
-}
 func (UnimplementedBookingServiceServer) GetBookings(context.Context, *GetOrderBookingsRequest) (*GetOrderBookingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBookings not implemented")
+}
+func (UnimplementedBookingServiceServer) DeleteOrderBookings(context.Context, *DeleteOrderBookingsRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrderBookings not implemented")
+}
+func (UnimplementedBookingServiceServer) CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateStock not implemented")
 }
 func (UnimplementedBookingServiceServer) GetStocks(context.Context, *GetStocksRequest) (*GetStocksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStocks not implemented")
@@ -144,24 +159,6 @@ func _BookingService_CreateBooking_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BookingService_CreateStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateStockRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BookingServiceServer).CreateStock(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/booking.api.v1.BookingService/CreateStock",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BookingServiceServer).CreateStock(ctx, req.(*CreateStockRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BookingService_GetBookings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrderBookingsRequest)
 	if err := dec(in); err != nil {
@@ -176,6 +173,42 @@ func _BookingService_GetBookings_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BookingServiceServer).GetBookings(ctx, req.(*GetOrderBookingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookingService_DeleteOrderBookings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOrderBookingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookingServiceServer).DeleteOrderBookings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/booking.api.v1.BookingService/DeleteOrderBookings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookingServiceServer).DeleteOrderBookings(ctx, req.(*DeleteOrderBookingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookingService_CreateStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookingServiceServer).CreateStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/booking.api.v1.BookingService/CreateStock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookingServiceServer).CreateStock(ctx, req.(*CreateStockRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -228,12 +261,16 @@ var BookingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BookingService_CreateBooking_Handler,
 		},
 		{
-			MethodName: "CreateStock",
-			Handler:    _BookingService_CreateStock_Handler,
-		},
-		{
 			MethodName: "GetBookings",
 			Handler:    _BookingService_GetBookings_Handler,
+		},
+		{
+			MethodName: "DeleteOrderBookings",
+			Handler:    _BookingService_DeleteOrderBookings_Handler,
+		},
+		{
+			MethodName: "CreateStock",
+			Handler:    _BookingService_CreateStock_Handler,
 		},
 		{
 			MethodName: "GetStocks",

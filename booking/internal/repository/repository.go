@@ -9,6 +9,7 @@ type BookingRepository interface {
 	Find(ctx context.Context, id model.UUID) (*model.Booking, error)
 	FindBy(ctx context.Context, params FindBookingsByParams) ([]*model.Booking, error)
 	Create(ctx context.Context, booking *model.Booking) error
+	BatchDelete(ctx context.Context, bookings []*model.Booking) error
 }
 
 type StockRepository interface {
@@ -16,25 +17,25 @@ type StockRepository interface {
 	FindBy(ctx context.Context, filter FindStocksByParams) ([]*model.Stock, error)
 	Create(ctx context.Context, stock *model.Stock) error
 	Update(ctx context.Context, stock *model.Stock) error
-	AddBookedSeats(ctx context.Context, s *model.Stock, quantity int) error
+	ModifyBookedSeats(ctx context.Context, s *model.Stock, quantity int) error
 }
 
 type NullUUID struct {
-	String model.UUID
-	Valid  bool
+	Value model.UUID
+	Valid bool
 }
 
 type FindBookingsByParams struct {
-	StockId     model.UUID
-	UserId      model.UUID
-	OrderId     model.UUID
+	StockId     NullUUID
+	UserId      NullUUID
+	OrderId     NullUUID
+	OnlyExpired bool
 	WithExpired bool
+	Limit       uint64
+	Offset      uint64
 }
 
 type FindStocksByParams struct {
 	EventId  model.UUID
-	TicketId struct {
-		Use bool
-		Val model.UUID
-	}
+	TicketId NullUUID
 }
