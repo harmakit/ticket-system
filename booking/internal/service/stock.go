@@ -56,3 +56,7 @@ func (s stockService) ModifyBookedSeats(ctx context.Context, stock *model.Stock,
 
 	return nil
 }
+
+func (s stockService) DeleteStock(ctx context.Context, uuid model.UUID) error {
+	return s.stockRepository.Delete(ctx, uuid)
+}

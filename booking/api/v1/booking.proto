@@ -12,6 +12,11 @@ service BookingService {
   rpc CreateStock(CreateStockRequest) returns (CreateStockResponse);
   rpc GetStocks(GetStocksRequest) returns (GetStocksResponse);
   rpc GetStock(GetStockRequest) returns (GetStockResponse);
+  rpc DeleteStock(DeleteStockRequest) returns (google.protobuf.Empty);
+}
+
+message DeleteStockRequest {
+  string id = 1;
 }
 
 message DeleteOrderBookingsRequest {

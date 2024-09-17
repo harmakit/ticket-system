@@ -12,6 +12,7 @@ type StockService interface {
 	CreateStock(ctx context.Context, stock *model.Stock) error
 	UpdateStock(ctx context.Context, stock *model.Stock) error
 	ModifyBookedSeats(ctx context.Context, stock *model.Stock, count int) error
+	DeleteStock(ctx context.Context, uuid model.UUID) error
 }
 
 type BookingService interface {
@@ -166,4 +167,8 @@ func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.U
 		}
 		return s.bookingService.DeleteBookings(ctxTX, bookings)
 	})
+}
+
+func (s *BusinessLogic) DeleteStock(ctx context.Context, uuid model.UUID) error {
+	return s.stockService.DeleteStock(ctx, uuid)
 }

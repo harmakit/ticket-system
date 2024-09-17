@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -10,8 +9,8 @@ type Event struct {
 	Date        time.Time
 	Duration    int
 	Name        string
-	Description sql.NullString
-	LocationId  sql.NullString
+	Description NullString
+	LocationId  NullUUID
 }
 
 func (e *Event) IsOnline() bool {

@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"ticket-system/event/internal/client/booking"
 	"ticket-system/event/internal/config"
 	handlerv1 "ticket-system/event/internal/handler/v1"
 	repository "ticket-system/event/internal/repository/postgres"
@@ -81,7 +82,9 @@ func makeBusinessLogicService(db *postgres.TransactionManager) service.BusinessL
 	ls := service.NewLocationService(lr)
 	ts := service.NewTicketService(tr)
 
-	bl := service.New(es, ls, ts)
+	bs := booking.NewService()
+
+	bl := service.New(db, es, ls, ts, bs)
 
 	return bl
 }

@@ -61,7 +61,7 @@ func (r stockRepository) Create(ctx context.Context, s *model.Stock) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.StockTable).Columns(schema.StockColumns...).
-		Values(sq.Expr("gen_random_uuid()"), s.EventId, s.TicketId, s.SeatsTotal, s.SeatsBooked).
+		Values(sq.Expr(repository.NewUUID), s.EventId, s.TicketId, s.SeatsTotal, s.SeatsBooked).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()
@@ -162,4 +162,19 @@ func (r stockRepository) ModifyBookedSeats(ctx context.Context, s *model.Stock, 
 	*s = *r.bindSchemaToModel(&ns)
 
 	return nil
+}
+
+func (r stockRepository) Delete(ctx context.Context, id model.UUID) error {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Delete(schema.StockTable).Where(sq.Eq{"id": id})
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, rawQuery, args...)
+
+	return err
 }

@@ -57,7 +57,7 @@ func (s *locationService) GetLocationsForEvents(ctx context.Context, events []*m
 				result := GetEventLocationTaskResult{
 					idx: task.idx,
 				}
-				location, err := s.GetLocation(task.ctx, model.UUID(task.event.LocationId.String))
+				location, err := s.GetLocation(task.ctx, task.event.LocationId.Value)
 				if err == nil {
 					result.location = location
 				}

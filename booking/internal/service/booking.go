@@ -30,13 +30,13 @@ func (s bookingService) ListBookings(ctx context.Context, stockId *model.UUID, o
 		WithExpired: expired,
 	}
 	if stockId != nil {
-		filter.StockId = repository.NullUUID{Valid: true, Value: *stockId}
+		filter.StockId = model.NullUUID{Valid: true, Value: *stockId}
 	}
 	if orderId != nil {
-		filter.OrderId = repository.NullUUID{Valid: true, Value: *orderId}
+		filter.OrderId = model.NullUUID{Valid: true, Value: *orderId}
 	}
 	if userId != nil {
-		filter.UserId = repository.NullUUID{Valid: true, Value: *userId}
+		filter.UserId = model.NullUUID{Valid: true, Value: *userId}
 	}
 	return s.bookingRepository.FindBy(ctx, filter)
 }

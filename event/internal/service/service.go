@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"ticket-system/event/internal/client/booking"
 	"ticket-system/event/internal/model"
+	"ticket-system/lib/query-engine/postgres"
 )
 
 type EventService interface {
 	GetEvent(ctx context.Context, uuid model.UUID) (*model.Event, error)
 	GetEvents(ctx context.Context, filter ListEventsFilter) ([]*model.Event, error)
+	CreateEvent(ctx context.Context, event *model.Event) error
 }
 
 type LocationService interface {
@@ -18,19 +21,34 @@ type LocationService interface {
 type TicketService interface {
 	GetTicketsForEvent(ctx context.Context, event *model.Event) ([]*model.Ticket, error)
 	GetTicketsForEvents(ctx context.Context, events []*model.Event) ([][]*model.Ticket, error)
+	CreateTicket(ctx context.Context, ticket *model.Ticket) error
 }
 
 type BusinessLogic struct {
+	transactionManager *postgres.TransactionManager
+
 	eventService    EventService
 	locationService LocationService
 	ticketService   TicketService
+
+	bookingService booking.Service
 }
 
-func New(eventService EventService, locationService LocationService, ticketService TicketService) BusinessLogic {
+func New(
+	transactionManager *postgres.TransactionManager,
+
+	eventService EventService,
+	locationService LocationService,
+	ticketService TicketService,
+
+	bookingService booking.Service,
+) BusinessLogic {
 	return BusinessLogic{
+		transactionManager,
 		eventService,
 		locationService,
 		ticketService,
+		bookingService,
 	}
 }
 
@@ -98,4 +116,51 @@ func (s *BusinessLogic) ListEvents(ctx context.Context, limit, offset int, locat
 	}
 
 	return events, locations, tickets, nil
+}
+
+func (s *BusinessLogic) CreateEvent(ctx context.Context, event *model.Event, tickets []*model.Ticket, seats []int) error {
+	if len(tickets) != len(seats) {
+		return ErrMismatchingTickets
+	}
+
+	stocksIds := make([]model.UUID, len(tickets))
+
+	err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
+		err := s.eventService.CreateEvent(ctxTX, event)
+		if err != nil {
+			return err
+		}
+
+		for i, ticket := range tickets {
+			ticket.EventId = event.Id
+			err = s.ticketService.CreateTicket(ctxTX, ticket)
+			if err != nil {
+				return err
+			}
+
+			seatsCount := seats[i]
+			stockId, err := s.bookingService.CreateStock(ctx, event.Id, ticket.Id, seatsCount)
+			if err != nil {
+				return err
+			}
+
+			stocksIds[i] = stockId
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		for _, stockId := range stocksIds {
+			if stockId != "" {
+				err = s.bookingService.DeleteStock(ctx, stockId)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return err
+	}
+
+	return err
 }

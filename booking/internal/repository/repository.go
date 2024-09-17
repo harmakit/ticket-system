@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"ticket-system/booking/internal/model"
 )
 
@@ -18,17 +19,15 @@ type StockRepository interface {
 	Create(ctx context.Context, stock *model.Stock) error
 	Update(ctx context.Context, stock *model.Stock) error
 	ModifyBookedSeats(ctx context.Context, s *model.Stock, quantity int) error
+	Delete(ctx context.Context, id model.UUID) error
 }
 
-type NullUUID struct {
-	Value model.UUID
-	Valid bool
-}
+const NewUUID = "gen_random_uuid()"
 
 type FindBookingsByParams struct {
-	StockId     NullUUID
-	UserId      NullUUID
-	OrderId     NullUUID
+	StockId     model.NullUUID
+	UserId      model.NullUUID
+	OrderId     model.NullUUID
 	OnlyExpired bool
 	WithExpired bool
 	Limit       uint64
@@ -37,5 +36,19 @@ type FindBookingsByParams struct {
 
 type FindStocksByParams struct {
 	EventId  model.UUID
-	TicketId NullUUID
+	TicketId model.NullUUID
+}
+
+func NullString(s model.NullString) sql.NullString {
+	return sql.NullString{
+		String: s.Value,
+		Valid:  s.Valid,
+	}
+}
+
+func NullUUID(s model.NullUUID) sql.NullString {
+	return sql.NullString{
+		String: string(s.Value),
+		Valid:  s.Valid,
+	}
 }

@@ -34,9 +34,9 @@ func (s *eventService) GetEvents(ctx context.Context, filter ListEventsFilter) (
 	params := repository.FindEventsByParams{
 		Offset: filter.Offset,
 		Limit:  filter.Limit,
-		LocationId: repository.NullUUID{
-			String: filter.LocationId.Val,
-			Valid:  filter.LocationId.Use,
+		LocationId: model.NullUUID{
+			Value: filter.LocationId.Val,
+			Valid: filter.LocationId.Use,
 		},
 	}
 
@@ -48,4 +48,8 @@ func (s *eventService) GetEvents(ctx context.Context, filter ListEventsFilter) (
 	}
 
 	return events, err
+}
+
+func (s *eventService) CreateEvent(ctx context.Context, event *model.Event) error {
+	return s.eventRepository.Create(ctx, event)
 }

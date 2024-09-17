@@ -136,6 +136,17 @@ func (impl BookingServiceImplementation) DeleteOrderBookings(ctx context.Context
 	return &res, nil
 }
 
+func (impl BookingServiceImplementation) DeleteStock(ctx context.Context, req *desc.DeleteStockRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+
+	err := impl.bl.DeleteStock(ctx, model.UUID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 func (impl BookingServiceImplementation) bindModelToDescStock(s *model.Stock) *desc.Stock {
 	if s == nil {
 		return nil

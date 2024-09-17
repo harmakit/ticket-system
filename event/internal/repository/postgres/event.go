@@ -26,14 +26,26 @@ func (r eventRepository) getQueryBuilder() sq.StatementBuilderType {
 }
 
 func (r eventRepository) bindSchemaToModel(e *schema.Event) *model.Event {
-	return &model.Event{
-		Id:          model.UUID(e.Id),
-		Date:        e.StartDate,
-		Duration:    e.Duration,
-		Name:        e.Name,
-		Description: e.Description,
-		LocationId:  e.LocationId,
+	event := &model.Event{
+		Id:       model.UUID(e.Id),
+		Date:     e.StartDate,
+		Duration: e.Duration,
+		Name:     e.Name,
 	}
+	if e.Description.Valid {
+		event.Description = model.NullString{
+			Value: e.Description.String,
+			Valid: true,
+		}
+	}
+	if e.LocationId.Valid {
+		event.LocationId = model.NullUUID{
+			Value: model.UUID(e.LocationId.String),
+			Valid: true,
+		}
+	}
+
+	return event
 }
 
 func (r eventRepository) Find(ctx context.Context, id model.UUID) (*model.Event, error) {
@@ -63,7 +75,7 @@ func (r eventRepository) FindBy(ctx context.Context, params repository.FindEvent
 
 	query := r.getQueryBuilder().Select(schema.EventColumns...).From(schema.EventTable)
 	if params.LocationId.Valid {
-		query = query.Where(sq.Eq{"location_id": params.LocationId})
+		query = query.Where(sq.Eq{"location_id": params.LocationId.Value})
 	}
 	if params.Limit > 0 {
 		query = query.Limit(uint64(params.Limit))
@@ -92,4 +104,27 @@ func (r eventRepository) FindBy(ctx context.Context, params repository.FindEvent
 	}
 
 	return res, err
+}
+
+func (r eventRepository) Create(ctx context.Context, e *model.Event) error {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Insert(schema.EventTable).Columns(schema.EventColumns...).
+		Values(sq.Expr(repository.NewUUID), e.Date, e.Duration, e.Name, repository.NullString(e.Description), repository.NullUUID(e.LocationId)).
+		Suffix("RETURNING *")
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	rows, _ := db.Query(ctx, rawQuery, args...)
+	ne, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Event])
+	if err != nil {
+		return err
+	}
+
+	*e = *r.bindSchemaToModel(&ne)
+
+	return nil
 }

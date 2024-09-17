@@ -82,3 +82,7 @@ func (s *ticketService) GetTicketsForEvents(ctx context.Context, events []*model
 
 	return tickets, nil
 }
+
+func (s *ticketService) CreateTicket(ctx context.Context, ticket *model.Ticket) error {
+	return s.ticketRepository.Create(ctx, ticket)
+}

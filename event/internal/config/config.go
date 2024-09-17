@@ -10,6 +10,9 @@ type Config struct {
 	DatabaseUrl string
 	Port        int
 	Env         string
+	Services    struct {
+		Booking string
+	}
 }
 
 var Data *Config
@@ -26,6 +29,8 @@ func Init() error {
 	Data.DatabaseUrl = os.Getenv("DATABASE_URL")
 
 	Data.Env = os.Getenv("ENV")
+
+	Data.Services.Booking = os.Getenv("BOOKING_SERVER")
 
 	err = Validate()
 	if err != nil {
@@ -46,6 +51,10 @@ func Validate() error {
 
 	if Data.DatabaseUrl == "" {
 		return errors.New("invalid database url")
+	}
+
+	if Data.Services.Booking == "" {
+		return errors.New("invalid booking service")
 	}
 
 	return nil

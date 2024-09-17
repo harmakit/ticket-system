@@ -29,6 +29,7 @@ type BookingServiceClient interface {
 	CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error)
 	GetStocks(ctx context.Context, in *GetStocksRequest, opts ...grpc.CallOption) (*GetStocksResponse, error)
 	GetStock(ctx context.Context, in *GetStockRequest, opts ...grpc.CallOption) (*GetStockResponse, error)
+	DeleteStock(ctx context.Context, in *DeleteStockRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type bookingServiceClient struct {
@@ -93,6 +94,15 @@ func (c *bookingServiceClient) GetStock(ctx context.Context, in *GetStockRequest
 	return out, nil
 }
 
+func (c *bookingServiceClient) DeleteStock(ctx context.Context, in *DeleteStockRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/DeleteStock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BookingServiceServer is the server API for BookingService service.
 // All implementations must embed UnimplementedBookingServiceServer
 // for forward compatibility
@@ -103,6 +113,7 @@ type BookingServiceServer interface {
 	CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error)
 	GetStocks(context.Context, *GetStocksRequest) (*GetStocksResponse, error)
 	GetStock(context.Context, *GetStockRequest) (*GetStockResponse, error)
+	DeleteStock(context.Context, *DeleteStockRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBookingServiceServer()
 }
 
@@ -127,6 +138,9 @@ func (UnimplementedBookingServiceServer) GetStocks(context.Context, *GetStocksRe
 }
 func (UnimplementedBookingServiceServer) GetStock(context.Context, *GetStockRequest) (*GetStockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStock not implemented")
+}
+func (UnimplementedBookingServiceServer) DeleteStock(context.Context, *DeleteStockRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteStock not implemented")
 }
 func (UnimplementedBookingServiceServer) mustEmbedUnimplementedBookingServiceServer() {}
 
@@ -249,6 +263,24 @@ func _BookingService_GetStock_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BookingService_DeleteStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookingServiceServer).DeleteStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/booking.api.v1.BookingService/DeleteStock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookingServiceServer).DeleteStock(ctx, req.(*DeleteStockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BookingService_ServiceDesc is the grpc.ServiceDesc for BookingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -279,6 +311,10 @@ var BookingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStock",
 			Handler:    _BookingService_GetStock_Handler,
+		},
+		{
+			MethodName: "DeleteStock",
+			Handler:    _BookingService_DeleteStock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

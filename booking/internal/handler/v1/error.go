@@ -1,5 +1,7 @@
 package v1
 
-import "fmt"
+import (
+	"errors"
+)
 
-var ErrRuntimeError = fmt.Errorf("runtime error")
+var ErrRuntimeError = errors.New("runtime error")

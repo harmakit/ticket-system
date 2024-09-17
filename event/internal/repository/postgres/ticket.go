@@ -82,3 +82,26 @@ func (r ticketRepository) FindByEventId(ctx context.Context, eventId model.UUID)
 
 	return res, err
 }
+
+func (r ticketRepository) Create(ctx context.Context, t *model.Ticket) error {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Insert(schema.TicketTable).Columns(schema.TicketColumns...).
+		Values(sq.Expr(repository.NewUUID), t.EventId, t.Name, t.Price).
+		Suffix("RETURNING *")
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	rows, _ := db.Query(ctx, rawQuery, args...)
+	nt, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[schema.Ticket])
+	if err != nil {
+		return err
+	}
+
+	*t = *r.bindSchemaToModel(&nt)
+
+	return nil
+}

@@ -28,7 +28,7 @@ func (impl EventServiceImplementation) GetEvent(ctx context.Context, req *desc.G
 
 	var location *model.Location
 	if event.LocationId.Valid {
-		location, err = impl.bl.GetLocation(ctx, model.UUID(event.LocationId.String))
+		location, err = impl.bl.GetLocation(ctx, event.LocationId.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -62,6 +62,59 @@ func (impl EventServiceImplementation) ListEvents(ctx context.Context, req *desc
 	return &res, nil
 }
 
+func (impl EventServiceImplementation) CreateEvent(ctx context.Context, req *desc.CreateEventRequest) (*desc.CreateEventResponse, error) {
+	var res desc.CreateEventResponse
+
+	event := &model.Event{
+		Name:     req.Event.Name,
+		Date:     req.Event.Date.AsTime(),
+		Duration: int(req.Event.Duration),
+		Description: model.NullString{
+			Value: req.Event.Description,
+			Valid: true,
+		},
+	}
+
+	if req.Event.LocationId != nil {
+		event.LocationId = model.NullUUID{
+			Value: model.UUID(*req.Event.LocationId),
+			Valid: true,
+		}
+	}
+
+	tickets := make([]*model.Ticket, len(req.Event.Tickets))
+	for i, ticket := range req.Event.Tickets {
+		tickets[i] = &model.Ticket{
+			Name:  ticket.Name,
+			Price: ticket.Price,
+		}
+	}
+
+	seats := make([]int, len(req.Event.Tickets))
+	for i, ticket := range req.Event.Tickets {
+		seats[i] = int(ticket.Seats)
+	}
+
+	var location *model.Location
+	var err error
+
+	if event.LocationId.Valid {
+		location, err = impl.bl.GetLocation(ctx, event.LocationId.Value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = impl.bl.CreateEvent(ctx, event, tickets, seats)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Event = impl.bindModelToDescEvent(event, location, tickets)
+
+	return &res, nil
+}
+
 func (impl EventServiceImplementation) bindModelToDescEvent(event *model.Event, location *model.Location, tickets []*model.Ticket) *desc.Event {
 	if event == nil {
 		return nil
@@ -90,7 +143,7 @@ func (impl EventServiceImplementation) bindModelToDescEvent(event *model.Event, 
 
 	description := &wrapperspb.StringValue{}
 	if event.Description.Valid {
-		description.Value = event.Description.String
+		description.Value = event.Description.Value
 	}
 
 	de := &desc.Event{

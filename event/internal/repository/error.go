@@ -1,5 +1,5 @@
 package repository
 
-import "fmt"
+import "errors"
 
-var ErrNoRows = fmt.Errorf("no rows in result set")
+var ErrNoRows = errors.New("no rows in result set")

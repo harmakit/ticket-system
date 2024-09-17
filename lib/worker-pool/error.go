@@ -1,5 +1,5 @@
 package worker_pool
 
-import "fmt"
+import "errors"
 
-var ErrWorkerPoolClosed = fmt.Errorf("worker pool closed")
+var ErrWorkerPoolClosed = errors.New("worker pool closed")

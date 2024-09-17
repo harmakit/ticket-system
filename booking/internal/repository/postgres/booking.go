@@ -111,7 +111,7 @@ func (r bookingRepository) Create(ctx context.Context, b *model.Booking) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.BookingTable).Columns(schema.BookingColumns...).
-		Values(sq.Expr("gen_random_uuid()"), b.StockId, b.UserId, b.OrderId, b.Count, b.CreatedAt, b.ExpiredAt).
+		Values(sq.Expr(repository.NewUUID), b.StockId, b.UserId, b.OrderId, b.Count, b.CreatedAt, b.ExpiredAt).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

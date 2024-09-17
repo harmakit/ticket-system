@@ -1,8 +1,10 @@
 package service
 
-import "fmt"
+import (
+	"errors"
+)
 
-var ErrStockNotFound = fmt.Errorf("stock not found")
-var ErrStockIsFullyBooked = fmt.Errorf("stock is fully booked")
-var ErrStockIsNotEnough = fmt.Errorf("stock is not enough")
-var ErrStockIsNegative = fmt.Errorf("stock is negative")
+var ErrStockNotFound = errors.New("stock not found")
+var ErrStockIsFullyBooked = errors.New("stock is fully booked")
+var ErrStockIsNotEnough = errors.New("stock is not enough")
+var ErrStockIsNegative = errors.New("stock is negative")
