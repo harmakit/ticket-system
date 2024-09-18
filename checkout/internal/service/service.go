@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"ticket-system/checkout/internal/client/booking"
 	"ticket-system/checkout/internal/client/event"
 	"ticket-system/checkout/internal/model"
@@ -12,6 +13,8 @@ type OrderService interface {
 	GetOrder(ctx context.Context, id model.UUID) (*model.Order, error)
 	CreateOrder(ctx context.Context, o *model.Order) error
 	UpdateOrder(ctx context.Context, order *model.Order) error
+	CheckBookingsAreEnough(items []*model.Item, bookings []*model.Booking) error
+	ListOrders(ctx context.Context, userId model.UUID, limit int, offset int) ([]*model.Order, error)
 }
 
 type ItemService interface {
@@ -104,6 +107,7 @@ func (s BusinessLogic) AddToCart(ctx context.Context, c *model.Cart) error {
 	}
 
 	c.Id = carts[0].Id
+	c.Count = c.Count + carts[0].Count
 
 	return s.cartService.UpdateCart(ctx, c)
 }
@@ -112,15 +116,15 @@ func (s BusinessLogic) UpdateCart(ctx context.Context, c *model.Cart) error {
 	return s.cartService.UpdateCart(ctx, c)
 }
 
-func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) error {
+func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) (*model.Order, error) {
 	carts, err := s.cartService.ListCarts(ctx, &userId, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cartsLen := len(carts)
 
 	if cartsLen == 0 {
-		return ErrEmptyCart
+		return nil, ErrEmptyCart
 	}
 
 	tickets := make([]*model.Ticket, cartsLen)
@@ -130,13 +134,13 @@ func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) error 
 	for i, cart := range carts {
 		receivedTicket, err := s.eventService.GetTicket(ctx, cart.TicketId)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		tickets[i] = receivedTicket
 
 		receivedStock, err := s.bookingService.GetTicketStock(ctx, receivedTicket.EventId, receivedTicket.Id)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		stocks[i] = receivedStock
@@ -162,9 +166,10 @@ func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) error 
 			bookingsIds[i] = bookingId
 
 			items[i] = &model.Item{
-				OrderId: order.Id,
-				StockId: stocks[i].Id,
-				Count:   carts[i].Count,
+				OrderId:  order.Id,
+				StockId:  stocks[i].Id,
+				TicketId: tickets[i].Id,
+				Count:    carts[i].Count,
 			}
 
 			err = s.itemService.CreateItem(ctx, items[i])
@@ -182,10 +187,14 @@ func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) error 
 	})
 
 	if err != nil {
-		return s.bookingService.ExpireBookings(ctx, bookingsIds)
+		expireBookingsErr := s.bookingService.ExpireBookings(ctx, bookingsIds)
+		if expireBookingsErr != nil {
+			err = errors.Wrap(expireBookingsErr, err.Error())
+		}
+		return nil, err
 	}
 
-	return nil
+	return order, nil
 }
 
 func (s BusinessLogic) MarkOrderAsPaid(ctx context.Context, id model.UUID) error {
@@ -193,12 +202,116 @@ func (s BusinessLogic) MarkOrderAsPaid(ctx context.Context, id model.UUID) error
 	if err != nil {
 		return err
 	}
+	if order.Status != model.StatusCreated {
+		return ErrOrderWrongStatus
+	}
 
-	err = s.bookingService.DeleteOrderBookings(ctx, order.Id)
+	items, err := s.itemService.ListItems(ctx, order.Id)
 	if err != nil {
+		return err
+	}
+
+	tickets := make([]*model.Ticket, len(items))
+	for i, item := range items {
+		ticket, err := s.eventService.GetTicket(ctx, item.TicketId)
+		if err != nil {
+			return err
+		}
+		tickets[i] = ticket
+	}
+
+	err = func() error {
+		bookings, err := s.bookingService.GetOrderBookings(ctx, order, items, tickets)
+		if err != nil {
+			return err
+		}
+		if len(bookings) == 0 {
+			return ErrNoBookings
+		}
+
+		err = s.orderService.CheckBookingsAreEnough(items, bookings)
+		if err != nil {
+			return err
+		}
+
+		err = s.bookingService.DeleteOrderBookings(ctx, order.Id, order.UserId, bookings)
+
+		return nil
+	}()
+
+	if err != nil {
+		order.Status = model.StatusFailed
+		updateOrderErr := s.orderService.UpdateOrder(ctx, order)
+		if updateOrderErr != nil {
+			err = errors.Wrap(updateOrderErr, err.Error())
+		}
 		return err
 	}
 
 	order.Status = model.StatusPaid
 	return s.orderService.UpdateOrder(ctx, order)
+}
+
+func (s BusinessLogic) GetUserCart(ctx context.Context, userId model.UUID) ([]*model.Cart, error) {
+	return s.cartService.ListCarts(ctx, &userId, nil)
+}
+
+func (s BusinessLogic) CancelOrder(ctx context.Context, id model.UUID) error {
+	order, err := s.orderService.GetOrder(ctx, id)
+	if err != nil {
+		return err
+	}
+	if order.Status != model.StatusCreated {
+		return ErrOrderWrongStatus
+	}
+
+	items, err := s.itemService.ListItems(ctx, order.Id)
+	if err != nil {
+		return err
+	}
+
+	tickets := make([]*model.Ticket, len(items))
+	for i, item := range items {
+		ticket, err := s.eventService.GetTicket(ctx, item.TicketId)
+		if err != nil {
+			return err
+		}
+		tickets[i] = ticket
+	}
+
+	bookings, err := s.bookingService.GetOrderBookings(ctx, order, items, tickets)
+	if err != nil {
+		return err
+	}
+
+	bookingsIds := make([]model.UUID, len(bookings))
+	for i, b := range bookings {
+		bookingsIds[i] = b.Id
+	}
+
+	err = s.bookingService.ExpireBookings(ctx, bookingsIds)
+	if err != nil {
+		return err
+	}
+
+	order.Status = model.StatusCancelled
+
+	return s.orderService.UpdateOrder(ctx, order)
+}
+
+func (s BusinessLogic) ListOrders(ctx context.Context, userId model.UUID, limit int, offset int) ([]*model.Order, [][]*model.Item, error) {
+	orders, err := s.orderService.ListOrders(ctx, userId, limit, offset)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	items := make([][]*model.Item, len(orders))
+	for i, order := range orders {
+		items[i], err = s.itemService.ListItems(ctx, order.Id)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return orders, items, nil
 }

@@ -27,10 +27,11 @@ func (r itemRepository) getQueryBuilder() sq.StatementBuilderType {
 
 func (r itemRepository) bindSchemaToModel(e *schema.Item) *model.Item {
 	item := &model.Item{
-		Id:      model.UUID(e.Id),
-		OrderId: model.UUID(e.OrderId),
-		StockId: model.UUID(e.StockId),
-		Count:   e.Count,
+		Id:       model.UUID(e.Id),
+		OrderId:  model.UUID(e.OrderId),
+		StockId:  model.UUID(e.StockId),
+		TicketId: model.UUID(e.TicketId),
+		Count:    e.Count,
 	}
 
 	return item
@@ -90,7 +91,7 @@ func (r itemRepository) Create(ctx context.Context, i *model.Item) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.ItemTable).Columns(schema.ItemColumns...).
-		Values(sq.Expr(repository.NewUUID), i.OrderId, i.StockId, i.Count).
+		Values(sq.Expr(repository.NewUUID), i.OrderId, i.StockId, i.TicketId, i.Count).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

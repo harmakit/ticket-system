@@ -57,6 +57,42 @@ func (r orderRepository) Find(ctx context.Context, id model.UUID) (*model.Order,
 	return r.bindSchemaToModel(&order), err
 }
 
+func (r orderRepository) FindBy(ctx context.Context, params repository.FindOrdersByParams) ([]*model.Order, error) {
+	db := r.transactionManager.GetQueryEngine(ctx)
+
+	query := r.getQueryBuilder().Select(schema.OrderColumns...).From(schema.OrderTable)
+	if params.UserId.Valid {
+		query = query.Where(sq.Eq{"user_id": params.UserId.Value})
+	}
+	if params.Limit > 0 {
+		query = query.Limit(uint64(params.Limit))
+	}
+	if params.Offset > 0 {
+		query = query.Offset(uint64(params.Offset))
+	}
+
+	rawQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, _ := db.Query(ctx, rawQuery, args...)
+	orders, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Order])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNoRows
+		}
+		return nil, err
+	}
+
+	res := make([]*model.Order, len(orders))
+	for i, event := range orders {
+		res[i] = r.bindSchemaToModel(&event)
+	}
+
+	return res, err
+}
+
 func (r orderRepository) Create(ctx context.Context, o *model.Order) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
@@ -83,7 +119,7 @@ func (r orderRepository) Create(ctx context.Context, o *model.Order) error {
 func (r orderRepository) Update(ctx context.Context, o *model.Order) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
-	query := r.getQueryBuilder().Update(schema.CartTable).
+	query := r.getQueryBuilder().Update(schema.OrderTable).
 		SetMap(map[string]interface{}{
 			"status": o.Status,
 		}).

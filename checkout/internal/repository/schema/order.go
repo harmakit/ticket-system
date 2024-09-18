@@ -1,6 +1,6 @@
 package schema
 
-const OrderTable = "Order"
+const OrderTable = "\"order\""
 
 var OrderColumns = []string{"id", "user_id", "status"}
 

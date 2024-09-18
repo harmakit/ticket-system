@@ -23,6 +23,7 @@ message DeleteStockRequest {
 message DeleteOrderBookingsRequest {
   string orderId = 1;
   string userId = 2;
+  repeated string ids = 3;
 }
 
 message ExpireBookingsRequest {

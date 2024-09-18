@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"ticket-system/event/internal/client/booking"
 	"ticket-system/event/internal/model"
 	"ticket-system/lib/query-engine/postgres"
@@ -154,9 +155,9 @@ func (s *BusinessLogic) CreateEvent(ctx context.Context, event *model.Event, tic
 	if err != nil {
 		for _, stockId := range stocksIds {
 			if stockId != "" {
-				err = s.bookingService.DeleteStock(ctx, stockId)
-				if err != nil {
-					return err
+				deleteStockErr := s.bookingService.DeleteStock(ctx, stockId)
+				if deleteStockErr != nil {
+					return errors.Wrap(deleteStockErr, err.Error())
 				}
 			}
 		}

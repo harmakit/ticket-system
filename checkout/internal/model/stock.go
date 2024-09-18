@@ -7,7 +7,3 @@ type Stock struct {
 	SeatsTotal  int
 	SeatsBooked int
 }
-
-func (s *Stock) IsFullyBooked() bool {
-	return s.SeatsTotal == s.SeatsBooked
-}

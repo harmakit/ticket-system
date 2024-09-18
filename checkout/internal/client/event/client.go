@@ -10,7 +10,6 @@ import (
 type Client interface {
 	Close() error
 	GetTicket(ctx context.Context, req *eventAPI.GetTicketRequest) (*eventAPI.GetTicketResponse, error)
-	GetEvent(ctx context.Context, req *eventAPI.GetEventRequest) (*eventAPI.GetEventResponse, error)
 }
 
 type client struct {
@@ -32,11 +31,5 @@ func (c *client) Close() error {
 func (c *client) GetTicket(ctx context.Context, req *eventAPI.GetTicketRequest) (*eventAPI.GetTicketResponse, error) {
 	res, err := c.EventServiceClient.GetTicket(ctx, req)
 	err = errors.Wrap(err, ErrGetTicket.Error())
-	return res, err
-}
-
-func (c *client) GetEvent(ctx context.Context, req *eventAPI.GetEventRequest) (*eventAPI.GetEventResponse, error) {
-	res, err := c.EventServiceClient.GetEvent(ctx, req)
-	err = errors.Wrap(err, ErrGetEvent.Error())
 	return res, err
 }

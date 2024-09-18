@@ -10,6 +10,7 @@ type OrderRepository interface {
 	Find(ctx context.Context, id model.UUID) (*model.Order, error)
 	Create(ctx context.Context, o *model.Order) error
 	Update(ctx context.Context, order *model.Order) error
+	FindBy(ctx context.Context, filter FindOrdersByParams) ([]*model.Order, error)
 }
 
 type ItemRepository interface {
@@ -49,4 +50,10 @@ type FindItemsByParams struct {
 type FindCartsByParams struct {
 	UserId   model.NullUUID
 	TicketId model.NullUUID
+}
+
+type FindOrdersByParams struct {
+	UserId model.NullUUID
+	Limit  int
+	Offset int
 }

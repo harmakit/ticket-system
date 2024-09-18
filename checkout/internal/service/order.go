@@ -27,3 +27,36 @@ func (s orderService) CreateOrder(ctx context.Context, o *model.Order) error {
 func (s orderService) UpdateOrder(ctx context.Context, order *model.Order) error {
 	return s.orderRepository.Update(ctx, order)
 }
+
+func (s orderService) CheckBookingsAreEnough(items []*model.Item, bookings []*model.Booking) error {
+	stocksCounts := make(map[model.UUID]int)
+
+	for _, i := range items {
+		stocksCounts[i.StockId] += i.Count
+	}
+
+	for _, b := range bookings {
+		if _, ok := stocksCounts[b.StockId]; !ok {
+			return ErrNoStockBookingForItem
+		}
+		stocksCounts[b.StockId] -= b.Count
+		if stocksCounts[b.StockId] == 0 {
+			delete(stocksCounts, b.StockId)
+		}
+	}
+
+	if len(stocksCounts) > 0 {
+		return ErrBookedStocksAreNotEnoughForOrder
+	}
+
+	return nil
+}
+
+func (s orderService) ListOrders(ctx context.Context, userId model.UUID, limit int, offset int) ([]*model.Order, error) {
+	filter := repository.FindOrdersByParams{
+		UserId: model.NullUUID{Value: userId, Valid: true},
+		Limit:  limit,
+		Offset: offset,
+	}
+	return s.orderRepository.FindBy(ctx, filter)
+}

@@ -13,7 +13,8 @@ type Service interface {
 	GetTicketStock(ctx context.Context, eventId model.UUID, ticketId model.UUID) (*model.Stock, error)
 	ExpireBookings(ctx context.Context, bookingsIds []model.UUID) error
 	CreateBooking(ctx context.Context, ticket *model.Ticket, order *model.Order, cart *model.Cart, userId model.UUID) (model.UUID, error)
-	DeleteOrderBookings(ctx context.Context, orderId model.UUID) error
+	DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID, bookings []*model.Booking) error
+	GetOrderBookings(ctx context.Context, order *model.Order, items []*model.Item, tickets []*model.Ticket) ([]*model.Booking, error)
 }
 
 type service struct {
@@ -80,10 +81,46 @@ func (s *service) CreateBooking(ctx context.Context, ticket *model.Ticket, order
 	return model.UUID(res.Id), nil
 }
 
-func (s *service) DeleteOrderBookings(ctx context.Context, orderId model.UUID) error {
-	req := &bookingAPI.DeleteOrderBookingsRequest{OrderId: string(orderId)}
+func (s *service) DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID, bookings []*model.Booking) error {
+	ids := make([]string, len(bookings))
+	for i, b := range bookings {
+		ids[i] = string(b.Id)
+	}
+
+	req := &bookingAPI.DeleteOrderBookingsRequest{
+		OrderId: string(orderId),
+		UserId:  string(userId),
+		Ids:     ids,
+	}
 	_, err := s.client.DeleteOrderBookings(ctx, req)
 	return err
+}
+
+func (s *service) GetOrderBookings(ctx context.Context, order *model.Order, items []*model.Item, tickets []*model.Ticket) ([]*model.Booking, error) {
+	if len(items) != len(tickets) {
+		return nil, ErrMismatchedItemsAndTickets
+	}
+
+	var bookings []*model.Booking
+	for i, item := range items {
+		req := &bookingAPI.GetOrderBookingsRequest{
+			EventId:     string(tickets[i].EventId),
+			TicketId:    string(item.TicketId),
+			OrderId:     string(order.Id),
+			UserId:      string(order.UserId),
+			WithExpired: false,
+		}
+		res, err := s.client.GetBookings(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, apiBooking := range res.Bookings {
+			bookings = append(bookings, s.bindAPIBookingToModel(apiBooking))
+		}
+	}
+
+	return bookings, nil
 }
 
 func (s *service) bindAPIStockToModel(stock *bookingAPI.Stock) *model.Stock {
@@ -93,5 +130,17 @@ func (s *service) bindAPIStockToModel(stock *bookingAPI.Stock) *model.Stock {
 		TicketId:    model.UUID(stock.TicketId),
 		SeatsTotal:  int(stock.SeatsTotal),
 		SeatsBooked: int(stock.SeatsBooked),
+	}
+}
+
+func (s *service) bindAPIBookingToModel(booking *bookingAPI.Booking) *model.Booking {
+	return &model.Booking{
+		Id:        model.UUID(booking.Id),
+		StockId:   model.UUID(booking.StockId),
+		UserId:    model.UUID(booking.UserId),
+		OrderId:   model.UUID(booking.OrderId),
+		Count:     int(booking.Count),
+		CreatedAt: booking.CreatedAt.AsTime(),
+		ExpiredAt: booking.ExpiredAt.AsTime(),
 	}
 }

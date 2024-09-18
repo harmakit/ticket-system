@@ -30,6 +30,26 @@ func (impl CheckoutServiceImplementation) GetOrder(ctx context.Context, req *des
 	return &res, nil
 }
 
+func (impl CheckoutServiceImplementation) ListOrders(ctx context.Context, req *desc.ListOrdersRequest) (*desc.ListOrdersResponse, error) {
+	var res desc.ListOrdersResponse
+
+	orders, items, err := impl.bl.ListOrders(ctx, model.UUID(req.UserId), int(req.Limit), int(req.Offset))
+	if err != nil {
+		return nil, err
+	}
+
+	resOrders := make([]*desc.Order, 0, len(orders))
+	for i, order := range orders {
+		resOrders = append(resOrders, impl.bindModelToDescOrder(order, items[i]))
+	}
+
+	res = desc.ListOrdersResponse{
+		Orders: resOrders,
+	}
+
+	return &res, nil
+}
+
 func (impl CheckoutServiceImplementation) AddToCart(ctx context.Context, req *desc.AddToCartRequest) (*desc.AddToCartResponse, error) {
 	var res desc.AddToCartResponse
 
@@ -70,13 +90,40 @@ func (impl CheckoutServiceImplementation) UpdateCart(ctx context.Context, req *d
 	return &res, nil
 }
 
-func (impl CheckoutServiceImplementation) PlaceOrder(ctx context.Context, req *desc.PlaceOrderRequest) (*emptypb.Empty, error) {
-	var res emptypb.Empty
+func (impl CheckoutServiceImplementation) GetUserCart(ctx context.Context, req *desc.GetUserCartRequest) (*desc.GetUserCartResponse, error) {
+	var res desc.GetUserCartResponse
 
-	err := impl.bl.PlaceOrder(ctx, model.UUID(req.UserId))
+	carts, err := impl.bl.GetUserCart(ctx, model.UUID(req.UserId))
 	if err != nil {
 		return nil, err
 	}
+
+	items := make([]*desc.Cart, 0, len(carts))
+	for _, cart := range carts {
+		items = append(items, impl.bindModelToDescCart(cart))
+	}
+
+	res = desc.GetUserCartResponse{
+		Carts: items,
+	}
+
+	return &res, nil
+}
+
+func (impl CheckoutServiceImplementation) PlaceOrder(ctx context.Context, req *desc.PlaceOrderRequest) (*desc.PlaceOrderResponse, error) {
+	var res desc.PlaceOrderResponse
+
+	o, err := impl.bl.PlaceOrder(ctx, model.UUID(req.UserId))
+	if err != nil {
+		return nil, err
+	}
+
+	o, is, err := impl.bl.GetOrder(ctx, o.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Order = impl.bindModelToDescOrder(o, is)
 
 	return &res, nil
 }
@@ -85,6 +132,17 @@ func (impl CheckoutServiceImplementation) MarkOrderAsPaid(ctx context.Context, r
 	var res emptypb.Empty
 
 	err := impl.bl.MarkOrderAsPaid(ctx, model.UUID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (impl CheckoutServiceImplementation) CancelOrder(ctx context.Context, req *desc.CancelOrderRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+
+	err := impl.bl.CancelOrder(ctx, model.UUID(req.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +170,11 @@ func (impl CheckoutServiceImplementation) bindModelToDescOrder(o *model.Order, i
 	var items []*desc.Item
 	for _, i := range is {
 		items = append(items, &desc.Item{
-			Id:      string(i.Id),
-			OrderId: string(i.OrderId),
-			StockId: string(i.StockId),
-			Count:   int32(i.Count),
+			Id:       string(i.Id),
+			OrderId:  string(i.OrderId),
+			StockId:  string(i.StockId),
+			TicketId: string(i.TicketId),
+			Count:    int32(i.Count),
 		})
 	}
 
@@ -124,5 +183,14 @@ func (impl CheckoutServiceImplementation) bindModelToDescOrder(o *model.Order, i
 		UserId: string(o.UserId),
 		Status: status,
 		Items:  items,
+	}
+}
+
+func (impl CheckoutServiceImplementation) bindModelToDescCart(cart *model.Cart) *desc.Cart {
+	return &desc.Cart{
+		Id:       string(cart.Id),
+		UserId:   string(cart.UserId),
+		TicketId: string(cart.TicketId),
+		Count:    int32(cart.Count),
 	}
 }

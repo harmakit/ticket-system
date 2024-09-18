@@ -6,10 +6,38 @@ option go_package = "ticket-system/event/api/v1";
 
 service CheckoutService {
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  rpc GetUserCart(GetUserCartRequest) returns (GetUserCartResponse);
   rpc AddToCart(AddToCartRequest) returns (AddToCartResponse);
   rpc UpdateCart(UpdateCartRequest) returns (google.protobuf.Empty);
-  rpc PlaceOrder(PlaceOrderRequest) returns (google.protobuf.Empty);
+  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
   rpc MarkOrderAsPaid(MarkOrderAsPaidRequest) returns (google.protobuf.Empty);
+  rpc CancelOrder(CancelOrderRequest) returns (google.protobuf.Empty);
+}
+
+message ListOrdersRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+}
+
+message GetUserCartRequest {
+  string user_id = 1;
+}
+
+message GetUserCartResponse {
+  repeated Cart carts = 1;
+}
+
+message Cart {
+  string id = 1;
+  string user_id = 2;
+  string ticket_id = 3;
+  int32 count = 4;
 }
 
 message GetOrderRequest {
@@ -17,6 +45,10 @@ message GetOrderRequest {
 }
 
 message GetOrderResponse {
+  Order order = 1;
+}
+
+message PlaceOrderResponse {
   Order order = 1;
 }
 
@@ -38,7 +70,8 @@ message Item {
   string id = 1;
   string order_id = 2;
   string stock_id = 3;
-  int32 count = 4;
+  string ticket_id = 4;
+  int32 count = 5;
 }
 
 message AddToCartRequest {
@@ -66,5 +99,9 @@ message PlaceOrderRequest {
 }
 
 message MarkOrderAsPaidRequest {
+  string id = 1;
+}
+
+message CancelOrderRequest {
   string id = 1;
 }

@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 	"os"
-	"ticket-system/event/internal/config"
+	"ticket-system/checkout/internal/config"
 	"ticket-system/lib/logger"
 )
 

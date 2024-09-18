@@ -128,7 +128,12 @@ func (impl BookingServiceImplementation) CreateBooking(ctx context.Context, req 
 func (impl BookingServiceImplementation) DeleteOrderBookings(ctx context.Context, req *desc.DeleteOrderBookingsRequest) (*emptypb.Empty, error) {
 	var res emptypb.Empty
 
-	err := impl.bl.DeleteOrderBookings(ctx, model.UUID(req.OrderId), model.UUID(req.UserId))
+	ids := make([]model.UUID, len(req.Ids))
+	for i, id := range req.Ids {
+		ids[i] = model.UUID(id)
+	}
+
+	err := impl.bl.DeleteOrderBookings(ctx, model.UUID(req.OrderId), model.UUID(req.UserId), ids)
 	if err != nil {
 		return nil, err
 	}

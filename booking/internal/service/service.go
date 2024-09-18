@@ -159,12 +159,16 @@ func (s *BusinessLogic) RemoveExpiredBookings(ctx context.Context) error {
 	return nil
 }
 
-func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID) error {
+func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID, ids []model.UUID) error {
 	return s.transactionManager.RunRepeatableRead(ctx, func(ctxTX context.Context) error {
-		bookings, err := s.bookingService.ListBookings(ctxTX, nil, nil, &orderId, &userId, true)
+		bookings, err := s.bookingService.ListBookings(ctxTX, ids, nil, &orderId, &userId, true)
 		if err != nil {
 			return err
 		}
+		if len(bookings) != len(ids) {
+			return ErrBookingsMissing
+		}
+
 		return s.bookingService.DeleteBookings(ctxTX, bookings)
 	})
 }
