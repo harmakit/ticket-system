@@ -1,0 +1,70 @@
+syntax = "proto3";
+package event.api.v1;
+
+import "google/protobuf/empty.proto";
+option go_package = "ticket-system/event/api/v1";
+
+service CheckoutService {
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc AddToCart(AddToCartRequest) returns (AddToCartResponse);
+  rpc UpdateCart(UpdateCartRequest) returns (google.protobuf.Empty);
+  rpc PlaceOrder(PlaceOrderRequest) returns (google.protobuf.Empty);
+  rpc MarkOrderAsPaid(MarkOrderAsPaidRequest) returns (google.protobuf.Empty);
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+message Order {
+  string id = 1;
+  string user_id = 2;
+  Status status = 3;
+  repeated Item items = 4;
+}
+
+enum Status {
+  CREATED = 0;
+  PAID = 1;
+  FAILED = 2;
+  CANCELLED = 3;
+}
+
+message Item {
+  string id = 1;
+  string order_id = 2;
+  string stock_id = 3;
+  int32 count = 4;
+}
+
+message AddToCartRequest {
+  string user_id = 1;
+  string ticket_id = 2;
+  int32 count = 3;
+}
+
+message AddToCartResponse {
+  string id = 1;
+  string user_id = 2;
+  string ticket_id = 3;
+  int32 count = 4;
+}
+
+message UpdateCartRequest {
+  string id = 1;
+  string user_id = 2;
+  string ticket_id = 3;
+  int32 count = 4;
+}
+
+message PlaceOrderRequest {
+  string user_id = 1;
+}
+
+message MarkOrderAsPaidRequest {
+  string id = 1;
+}

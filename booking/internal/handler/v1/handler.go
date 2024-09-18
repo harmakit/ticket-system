@@ -136,6 +136,21 @@ func (impl BookingServiceImplementation) DeleteOrderBookings(ctx context.Context
 	return &res, nil
 }
 
+func (impl BookingServiceImplementation) ExpireBookings(ctx context.Context, req *desc.ExpireBookingsRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+
+	ids := make([]model.UUID, len(req.Ids))
+	for i, id := range req.Ids {
+		ids[i] = model.UUID(id)
+	}
+	err := impl.bl.ExpireBookings(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 func (impl BookingServiceImplementation) DeleteStock(ctx context.Context, req *desc.DeleteStockRequest) (*emptypb.Empty, error) {
 	var res emptypb.Empty
 

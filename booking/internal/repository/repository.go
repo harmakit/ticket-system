@@ -25,6 +25,7 @@ type StockRepository interface {
 const NewUUID = "gen_random_uuid()"
 
 type FindBookingsByParams struct {
+	Ids         []model.UUID
 	StockId     model.NullUUID
 	UserId      model.NullUUID
 	OrderId     model.NullUUID

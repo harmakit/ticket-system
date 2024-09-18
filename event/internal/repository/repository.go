@@ -13,6 +13,7 @@ type EventRepository interface {
 }
 
 type TicketRepository interface {
+	Find(ctx context.Context, id model.UUID) (*model.Ticket, error)
 	FindByEventId(ctx context.Context, eventId model.UUID) ([]*model.Ticket, error)
 	Create(ctx context.Context, ticket *model.Ticket) error
 }

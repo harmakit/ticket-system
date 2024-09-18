@@ -86,3 +86,7 @@ func (s *ticketService) GetTicketsForEvents(ctx context.Context, events []*model
 func (s *ticketService) CreateTicket(ctx context.Context, ticket *model.Ticket) error {
 	return s.ticketRepository.Create(ctx, ticket)
 }
+
+func (s *ticketService) GetTicket(ctx context.Context, id model.UUID) (*model.Ticket, error) {
+	return s.ticketRepository.Find(ctx, id)
+}

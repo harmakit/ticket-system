@@ -22,6 +22,7 @@ type TicketService interface {
 	GetTicketsForEvent(ctx context.Context, event *model.Event) ([]*model.Ticket, error)
 	GetTicketsForEvents(ctx context.Context, events []*model.Event) ([][]*model.Ticket, error)
 	CreateTicket(ctx context.Context, ticket *model.Ticket) error
+	GetTicket(ctx context.Context, id model.UUID) (*model.Ticket, error)
 }
 
 type BusinessLogic struct {
@@ -163,4 +164,8 @@ func (s *BusinessLogic) CreateEvent(ctx context.Context, event *model.Event, tic
 	}
 
 	return err
+}
+
+func (s *BusinessLogic) GetTicket(ctx context.Context, id model.UUID) (*model.Ticket, error) {
+	return s.ticketService.GetTicket(ctx, id)
 }

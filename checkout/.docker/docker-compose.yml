@@ -1,0 +1,32 @@
+networks:
+  ticket-system:
+    driver: bridge
+
+services:
+  checkout:
+    build:
+      context: ../../
+      dockerfile: checkout/.docker/Dockerfile.multistage
+    ports:
+      - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
+    networks:
+      - ticket-system
+    depends_on:
+      - checkout_db
+    restart: on-failure
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@checkout_db:5432/${POSTGRES_DB}
+    env_file:
+      - ../.env
+
+  checkout_db:
+    image: postgres
+    ports:
+      - ${EXPOSE_DB_PORT}:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
+    networks:
+      - ticket-system
+    restart: unless-stopped

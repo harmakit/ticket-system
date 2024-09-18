@@ -25,9 +25,12 @@ func (s bookingService) CreateBooking(ctx context.Context, booking *model.Bookin
 	return s.bookingRepository.Create(ctx, booking)
 }
 
-func (s bookingService) ListBookings(ctx context.Context, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error) {
+func (s bookingService) ListBookings(ctx context.Context, ids []model.UUID, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error) {
 	filter := repository.FindBookingsByParams{
 		WithExpired: expired,
+	}
+	if ids != nil && len(ids) > 0 {
+		filter.Ids = ids
 	}
 	if stockId != nil {
 		filter.StockId = model.NullUUID{Valid: true, Value: *stockId}

@@ -18,6 +18,19 @@ func NewEventServiceImplementation(bl service.BusinessLogic) desc.EventServiceSe
 	return &EventServiceImplementation{bl: bl}
 }
 
+func (impl EventServiceImplementation) GetTicket(ctx context.Context, req *desc.GetTicketRequest) (*desc.GetTicketResponse, error) {
+	var res desc.GetTicketResponse
+
+	ticket, err := impl.bl.GetTicket(ctx, model.UUID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	res.Ticket = impl.bindModelToDescTicket(ticket)
+
+	return &res, nil
+}
+
 func (impl EventServiceImplementation) GetEvent(ctx context.Context, req *desc.GetEventRequest) (*desc.GetEventResponse, error) {
 	var res desc.GetEventResponse
 
@@ -133,12 +146,7 @@ func (impl EventServiceImplementation) bindModelToDescEvent(event *model.Event, 
 
 	dts := make([]*desc.Ticket, len(tickets))
 	for i, ticket := range tickets {
-		dts[i] = &desc.Ticket{
-			Id:      string(ticket.Id),
-			EventId: string(ticket.EventId),
-			Price:   ticket.Price,
-			Name:    ticket.Name,
-		}
+		dts[i] = impl.bindModelToDescTicket(ticket)
 	}
 
 	description := &wrapperspb.StringValue{}
@@ -157,4 +165,13 @@ func (impl EventServiceImplementation) bindModelToDescEvent(event *model.Event, 
 	}
 
 	return de
+}
+
+func (impl EventServiceImplementation) bindModelToDescTicket(ticket *model.Ticket) *desc.Ticket {
+	return &desc.Ticket{
+		Id:      string(ticket.Id),
+		EventId: string(ticket.EventId),
+		Price:   ticket.Price,
+		Name:    ticket.Name,
+	}
 }

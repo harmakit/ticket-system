@@ -9,6 +9,15 @@ service EventService {
   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);
   rpc GetEvent(GetEventRequest) returns (GetEventResponse);
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc GetTicket(GetTicketRequest) returns (GetTicketResponse);
+}
+
+message GetTicketRequest {
+  string id = 1;
+}
+
+message GetTicketResponse {
+  Ticket ticket = 1;
 }
 
 message CreateEventRequest {

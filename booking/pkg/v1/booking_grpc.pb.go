@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type BookingServiceClient interface {
 	CreateBooking(ctx context.Context, in *CreateBookingRequest, opts ...grpc.CallOption) (*CreateBookingResponse, error)
 	GetBookings(ctx context.Context, in *GetOrderBookingsRequest, opts ...grpc.CallOption) (*GetOrderBookingsResponse, error)
+	ExpireBookings(ctx context.Context, in *ExpireBookingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteOrderBookings(ctx context.Context, in *DeleteOrderBookingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateStock(ctx context.Context, in *CreateStockRequest, opts ...grpc.CallOption) (*CreateStockResponse, error)
 	GetStocks(ctx context.Context, in *GetStocksRequest, opts ...grpc.CallOption) (*GetStocksResponse, error)
@@ -52,6 +53,15 @@ func (c *bookingServiceClient) CreateBooking(ctx context.Context, in *CreateBook
 func (c *bookingServiceClient) GetBookings(ctx context.Context, in *GetOrderBookingsRequest, opts ...grpc.CallOption) (*GetOrderBookingsResponse, error) {
 	out := new(GetOrderBookingsResponse)
 	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/GetBookings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookingServiceClient) ExpireBookings(ctx context.Context, in *ExpireBookingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/booking.api.v1.BookingService/ExpireBookings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,6 +119,7 @@ func (c *bookingServiceClient) DeleteStock(ctx context.Context, in *DeleteStockR
 type BookingServiceServer interface {
 	CreateBooking(context.Context, *CreateBookingRequest) (*CreateBookingResponse, error)
 	GetBookings(context.Context, *GetOrderBookingsRequest) (*GetOrderBookingsResponse, error)
+	ExpireBookings(context.Context, *ExpireBookingsRequest) (*emptypb.Empty, error)
 	DeleteOrderBookings(context.Context, *DeleteOrderBookingsRequest) (*emptypb.Empty, error)
 	CreateStock(context.Context, *CreateStockRequest) (*CreateStockResponse, error)
 	GetStocks(context.Context, *GetStocksRequest) (*GetStocksResponse, error)
@@ -126,6 +137,9 @@ func (UnimplementedBookingServiceServer) CreateBooking(context.Context, *CreateB
 }
 func (UnimplementedBookingServiceServer) GetBookings(context.Context, *GetOrderBookingsRequest) (*GetOrderBookingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBookings not implemented")
+}
+func (UnimplementedBookingServiceServer) ExpireBookings(context.Context, *ExpireBookingsRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExpireBookings not implemented")
 }
 func (UnimplementedBookingServiceServer) DeleteOrderBookings(context.Context, *DeleteOrderBookingsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrderBookings not implemented")
@@ -187,6 +201,24 @@ func _BookingService_GetBookings_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BookingServiceServer).GetBookings(ctx, req.(*GetOrderBookingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookingService_ExpireBookings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExpireBookingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookingServiceServer).ExpireBookings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/booking.api.v1.BookingService/ExpireBookings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookingServiceServer).ExpireBookings(ctx, req.(*ExpireBookingsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -295,6 +327,10 @@ var BookingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBookings",
 			Handler:    _BookingService_GetBookings_Handler,
+		},
+		{
+			MethodName: "ExpireBookings",
+			Handler:    _BookingService_ExpireBookings_Handler,
 		},
 		{
 			MethodName: "DeleteOrderBookings",

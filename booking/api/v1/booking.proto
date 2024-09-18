@@ -8,6 +8,7 @@ option go_package = "ticket-system/booking/api/v1";
 service BookingService {
   rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
   rpc GetBookings(GetOrderBookingsRequest) returns (GetOrderBookingsResponse);
+  rpc ExpireBookings(ExpireBookingsRequest) returns (google.protobuf.Empty);
   rpc DeleteOrderBookings(DeleteOrderBookingsRequest) returns (google.protobuf.Empty);
   rpc CreateStock(CreateStockRequest) returns (CreateStockResponse);
   rpc GetStocks(GetStocksRequest) returns (GetStocksResponse);
@@ -22,6 +23,10 @@ message DeleteStockRequest {
 message DeleteOrderBookingsRequest {
   string orderId = 1;
   string userId = 2;
+}
+
+message ExpireBookingsRequest {
+  repeated string ids = 1;
 }
 
 message CreateStockRequest {

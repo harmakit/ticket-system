@@ -17,7 +17,7 @@ type StockService interface {
 
 type BookingService interface {
 	CreateBooking(ctx context.Context, booking *model.Booking) error
-	ListBookings(ctx context.Context, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error)
+	ListBookings(ctx context.Context, ids []model.UUID, stockId *model.UUID, orderId *model.UUID, userId *model.UUID, expired bool) ([]*model.Booking, error)
 	ListExpiredBookings(ctx context.Context, limit uint64, offset uint64) ([]*model.Booking, error)
 	DeleteBookings(ctx context.Context, bookings []*model.Booking) error
 }
@@ -105,7 +105,7 @@ func (s *BusinessLogic) CreateBooking(ctx context.Context, stock *model.Stock, u
 }
 
 func (s *BusinessLogic) ListBookings(ctx context.Context, stockId model.UUID, orderId model.UUID, userId model.UUID, withExpired bool) ([]*model.Booking, error) {
-	return s.bookingService.ListBookings(ctx, &stockId, &orderId, &userId, withExpired)
+	return s.bookingService.ListBookings(ctx, nil, &stockId, &orderId, &userId, withExpired)
 }
 
 func (s *BusinessLogic) RemoveExpiredBookings(ctx context.Context) error {
@@ -161,7 +161,7 @@ func (s *BusinessLogic) RemoveExpiredBookings(ctx context.Context) error {
 
 func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.UUID, userId model.UUID) error {
 	return s.transactionManager.RunRepeatableRead(ctx, func(ctxTX context.Context) error {
-		bookings, err := s.bookingService.ListBookings(ctxTX, nil, &orderId, &userId, true)
+		bookings, err := s.bookingService.ListBookings(ctxTX, nil, nil, &orderId, &userId, true)
 		if err != nil {
 			return err
 		}
@@ -171,4 +171,45 @@ func (s *BusinessLogic) DeleteOrderBookings(ctx context.Context, orderId model.U
 
 func (s *BusinessLogic) DeleteStock(ctx context.Context, uuid model.UUID) error {
 	return s.stockService.DeleteStock(ctx, uuid)
+}
+
+func (s *BusinessLogic) ExpireBookings(ctx context.Context, ids []model.UUID) error {
+	var bookings []*model.Booking
+
+	err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
+		var err error
+		bookings, err = s.bookingService.ListBookings(ctxTX, ids, nil, nil, nil, true)
+		if err != nil {
+			return err
+		}
+
+		if len(bookings) == 0 {
+			return nil
+		}
+
+		for _, booking := range bookings {
+			stock, err := s.stockService.GetStock(ctxTX, booking.StockId)
+			if err != nil {
+				return err
+			}
+
+			err = s.stockService.ModifyBookedSeats(ctxTX, stock, -booking.Count)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = s.bookingService.DeleteBookings(ctxTX, bookings)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

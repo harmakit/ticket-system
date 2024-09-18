@@ -1,0 +1,10 @@
+services:
+  checkout:
+    build:
+      dockerfile: checkout/.docker/Dockerfile.dev.multistage
+    security_opt:
+      - apparmor=unconfined
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - ${EXPOSE_DEBUG_PORT}:${DEBUG_PORT}
