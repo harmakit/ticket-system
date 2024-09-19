@@ -14,6 +14,10 @@ type Config struct {
 		Booking string
 		Event   string
 	}
+	Brokers []string
+	Topics  struct {
+		Order string
+	}
 }
 
 var Data *Config
@@ -33,6 +37,12 @@ func Init() error {
 
 	Data.Services.Booking = os.Getenv("BOOKING_SERVER")
 	Data.Services.Event = os.Getenv("EVENT_SERVER")
+
+	Data.Brokers = []string{
+		os.Getenv("BROKER_1"),
+		os.Getenv("BROKER_2"),
+	}
+	Data.Topics.Order = os.Getenv("TOPIC_ORDER")
 
 	err = Validate()
 	if err != nil {
@@ -60,6 +70,19 @@ func Validate() error {
 	}
 	if Data.Services.Event == "" {
 		return errors.New("invalid booking service")
+	}
+
+	if len(Data.Brokers) == 0 {
+		return errors.New("no brokers provided")
+	}
+	for _, broker := range Data.Brokers {
+		if broker == "" {
+			return errors.New("invalid broker")
+		}
+	}
+
+	if Data.Topics.Order == "" {
+		return errors.New("invalid order topic")
 	}
 
 	return nil

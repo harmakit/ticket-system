@@ -5,7 +5,7 @@ import (
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"ticket-system/checkout/internal/model"
 	"ticket-system/checkout/internal/service"
-	desc "ticket-system/checkout/pkg/v1"
+	desc "ticket-system/checkout/pkg/v1/api"
 )
 
 type CheckoutServiceImplementation struct {

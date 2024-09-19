@@ -14,9 +14,10 @@ import (
 	"ticket-system/checkout/internal/client/event"
 	"ticket-system/checkout/internal/config"
 	handlerv1 "ticket-system/checkout/internal/handler/v1"
+	"ticket-system/checkout/internal/message"
 	repository "ticket-system/checkout/internal/repository/postgres"
 	"ticket-system/checkout/internal/service"
-	v1 "ticket-system/checkout/pkg/v1"
+	v1 "ticket-system/checkout/pkg/v1/api"
 	"ticket-system/lib/interceptor"
 	"ticket-system/lib/logger"
 	"ticket-system/lib/query-engine/postgres"
@@ -79,7 +80,9 @@ func makeBusinessLogicService(db *postgres.TransactionManager) service.BusinessL
 	ir := repository.NewItemRepository(db)
 	cr := repository.NewCartRepository(db)
 
-	ors := service.NewOrderService(or)
+	om := message.NewOrderMessenger()
+
+	ors := service.NewOrderService(or, om)
 	is := service.NewItemService(ir)
 	cs := service.NewCartService(cr)
 

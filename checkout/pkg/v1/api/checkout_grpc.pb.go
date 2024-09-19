@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: checkout.proto
 
-package v1
+package api
 
 import (
 	context "context"
@@ -43,7 +43,7 @@ func NewCheckoutServiceClient(cc grpc.ClientConnInterface) CheckoutServiceClient
 
 func (c *checkoutServiceClient) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error) {
 	out := new(GetOrderResponse)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/GetOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/GetOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c *checkoutServiceClient) GetOrder(ctx context.Context, in *GetOrderReques
 
 func (c *checkoutServiceClient) ListOrders(ctx context.Context, in *ListOrdersRequest, opts ...grpc.CallOption) (*ListOrdersResponse, error) {
 	out := new(ListOrdersResponse)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/ListOrders", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/ListOrders", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (c *checkoutServiceClient) ListOrders(ctx context.Context, in *ListOrdersRe
 
 func (c *checkoutServiceClient) GetUserCart(ctx context.Context, in *GetUserCartRequest, opts ...grpc.CallOption) (*GetUserCartResponse, error) {
 	out := new(GetUserCartResponse)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/GetUserCart", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/GetUserCart", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *checkoutServiceClient) GetUserCart(ctx context.Context, in *GetUserCart
 
 func (c *checkoutServiceClient) AddToCart(ctx context.Context, in *AddToCartRequest, opts ...grpc.CallOption) (*AddToCartResponse, error) {
 	out := new(AddToCartResponse)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/AddToCart", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/AddToCart", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (c *checkoutServiceClient) AddToCart(ctx context.Context, in *AddToCartRequ
 
 func (c *checkoutServiceClient) UpdateCart(ctx context.Context, in *UpdateCartRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/UpdateCart", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/UpdateCart", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (c *checkoutServiceClient) UpdateCart(ctx context.Context, in *UpdateCartRe
 
 func (c *checkoutServiceClient) PlaceOrder(ctx context.Context, in *PlaceOrderRequest, opts ...grpc.CallOption) (*PlaceOrderResponse, error) {
 	out := new(PlaceOrderResponse)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/PlaceOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/PlaceOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (c *checkoutServiceClient) PlaceOrder(ctx context.Context, in *PlaceOrderRe
 
 func (c *checkoutServiceClient) MarkOrderAsPaid(ctx context.Context, in *MarkOrderAsPaidRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/MarkOrderAsPaid", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/MarkOrderAsPaid", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *checkoutServiceClient) MarkOrderAsPaid(ctx context.Context, in *MarkOrd
 
 func (c *checkoutServiceClient) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/event.api.v1.CheckoutService/CancelOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/checkout.api.v1.CheckoutService/CancelOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func _CheckoutService_GetOrder_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/GetOrder",
+		FullMethod: "/checkout.api.v1.CheckoutService/GetOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).GetOrder(ctx, req.(*GetOrderRequest))
@@ -197,7 +197,7 @@ func _CheckoutService_ListOrders_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/ListOrders",
+		FullMethod: "/checkout.api.v1.CheckoutService/ListOrders",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).ListOrders(ctx, req.(*ListOrdersRequest))
@@ -215,7 +215,7 @@ func _CheckoutService_GetUserCart_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/GetUserCart",
+		FullMethod: "/checkout.api.v1.CheckoutService/GetUserCart",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).GetUserCart(ctx, req.(*GetUserCartRequest))
@@ -233,7 +233,7 @@ func _CheckoutService_AddToCart_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/AddToCart",
+		FullMethod: "/checkout.api.v1.CheckoutService/AddToCart",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).AddToCart(ctx, req.(*AddToCartRequest))
@@ -251,7 +251,7 @@ func _CheckoutService_UpdateCart_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/UpdateCart",
+		FullMethod: "/checkout.api.v1.CheckoutService/UpdateCart",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).UpdateCart(ctx, req.(*UpdateCartRequest))
@@ -269,7 +269,7 @@ func _CheckoutService_PlaceOrder_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/PlaceOrder",
+		FullMethod: "/checkout.api.v1.CheckoutService/PlaceOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).PlaceOrder(ctx, req.(*PlaceOrderRequest))
@@ -287,7 +287,7 @@ func _CheckoutService_MarkOrderAsPaid_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/MarkOrderAsPaid",
+		FullMethod: "/checkout.api.v1.CheckoutService/MarkOrderAsPaid",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).MarkOrderAsPaid(ctx, req.(*MarkOrderAsPaidRequest))
@@ -305,7 +305,7 @@ func _CheckoutService_CancelOrder_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.api.v1.CheckoutService/CancelOrder",
+		FullMethod: "/checkout.api.v1.CheckoutService/CancelOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CheckoutServiceServer).CancelOrder(ctx, req.(*CancelOrderRequest))
@@ -317,7 +317,7 @@ func _CheckoutService_CancelOrder_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CheckoutService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "event.api.v1.CheckoutService",
+	ServiceName: "checkout.api.v1.CheckoutService",
 	HandlerType: (*CheckoutServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

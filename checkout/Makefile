@@ -77,13 +77,18 @@ install-vendor-proto:
 	fi
 
 generate-proto: install-protoc install-vendor-proto
-	mkdir -p pkg/v1
+	mkdir -p pkg/v1/api
 	protoc -I api/v1 -I vendor-proto \
-		--go_out=pkg/v1 --go_opt=paths=source_relative \
+		--go_out=pkg/v1/api --go_opt=paths=source_relative \
 		--plugin=protoc-gen-go=bin/protoc-gen-go \
-		--go-grpc_out=pkg/v1 --go-grpc_opt=paths=source_relative \
+		--go-grpc_out=pkg/v1/api --go-grpc_opt=paths=source_relative \
 		--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 		api/v1/*.proto
+	mkdir -p pkg/v1/message
+	protoc -I message/v1 -I vendor-proto \
+		--go_out=pkg/v1/message --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go=bin/protoc-gen-go \
+		message/v1/*.proto
 
 install-lint:
 	test -f $(BINDIR)/golangci-lint || GOBIN=$(BINDIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3

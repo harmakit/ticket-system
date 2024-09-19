@@ -3,7 +3,7 @@ package booking
 import (
 	"context"
 	"go.uber.org/zap"
-	bookingAPI "ticket-system/booking/pkg/v1"
+	"ticket-system/booking/pkg/v1/api"
 	"ticket-system/checkout/internal/config"
 	"ticket-system/checkout/internal/model"
 	grpcClient "ticket-system/lib/client"
@@ -28,7 +28,7 @@ func NewService() Service {
 
 func (s *service) GetTicketStock(ctx context.Context, eventId model.UUID, ticketId model.UUID) (*model.Stock, error) {
 	ticketIdVal := string(ticketId)
-	req := &bookingAPI.GetStocksRequest{EventId: string(eventId), TicketId: &ticketIdVal}
+	req := &api.GetStocksRequest{EventId: string(eventId), TicketId: &ticketIdVal}
 	res, err := s.client.GetStocks(ctx, req)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (s *service) ExpireBookings(ctx context.Context, bookingsIds []model.UUID) 
 		ids = append(ids, string(id))
 	}
 
-	req := &bookingAPI.ExpireBookingsRequest{Ids: ids}
+	req := &api.ExpireBookingsRequest{Ids: ids}
 	_, err := s.client.ExpireBookings(ctx, req)
 	return err
 }
@@ -66,7 +66,7 @@ func (s *service) CreateBooking(ctx context.Context, ticket *model.Ticket, order
 	orderId := order.Id
 	count := cart.Count
 
-	req := &bookingAPI.CreateBookingRequest{
+	req := &api.CreateBookingRequest{
 		EventId:  string(eventId),
 		TicketId: string(ticketId),
 		UserId:   string(userId),
@@ -87,7 +87,7 @@ func (s *service) DeleteOrderBookings(ctx context.Context, orderId model.UUID, u
 		ids[i] = string(b.Id)
 	}
 
-	req := &bookingAPI.DeleteOrderBookingsRequest{
+	req := &api.DeleteOrderBookingsRequest{
 		OrderId: string(orderId),
 		UserId:  string(userId),
 		Ids:     ids,
@@ -103,7 +103,7 @@ func (s *service) GetOrderBookings(ctx context.Context, order *model.Order, item
 
 	var bookings []*model.Booking
 	for i, item := range items {
-		req := &bookingAPI.GetOrderBookingsRequest{
+		req := &api.GetOrderBookingsRequest{
 			EventId:     string(tickets[i].EventId),
 			TicketId:    string(item.TicketId),
 			OrderId:     string(order.Id),
@@ -123,7 +123,7 @@ func (s *service) GetOrderBookings(ctx context.Context, order *model.Order, item
 	return bookings, nil
 }
 
-func (s *service) bindAPIStockToModel(stock *bookingAPI.Stock) *model.Stock {
+func (s *service) bindAPIStockToModel(stock *api.Stock) *model.Stock {
 	return &model.Stock{
 		Id:          model.UUID(stock.Id),
 		EventId:     model.UUID(stock.EventId),
@@ -133,7 +133,7 @@ func (s *service) bindAPIStockToModel(stock *bookingAPI.Stock) *model.Stock {
 	}
 }
 
-func (s *service) bindAPIBookingToModel(booking *bookingAPI.Booking) *model.Booking {
+func (s *service) bindAPIBookingToModel(booking *api.Booking) *model.Booking {
 	return &model.Booking{
 		Id:        model.UUID(booking.Id),
 		StockId:   model.UUID(booking.StockId),

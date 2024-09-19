@@ -1,0 +1,17 @@
+syntax = "proto3";
+package checkout.message.v1;
+
+option go_package = "ticket-system/event/message/v1;message";
+
+message Order {
+  string id = 1;
+  string user_id = 2;
+  Status status = 3;
+}
+
+enum Status {
+  CREATED = 0;
+  PAID = 1;
+  FAILED = 2;
+  CANCELLED = 3;
+}

@@ -2,17 +2,20 @@ package service
 
 import (
 	"context"
+	"ticket-system/checkout/internal/message"
 	"ticket-system/checkout/internal/model"
 	"ticket-system/checkout/internal/repository"
 )
 
 type orderService struct {
 	orderRepository repository.OrderRepository
+	orderMessenger  message.OrderMessenger
 }
 
-func NewOrderService(eventRepository repository.OrderRepository) OrderService {
+func NewOrderService(eventRepository repository.OrderRepository, orderMessenger message.OrderMessenger) OrderService {
 	return &orderService{
 		eventRepository,
+		orderMessenger,
 	}
 }
 
@@ -59,4 +62,8 @@ func (s orderService) ListOrders(ctx context.Context, userId model.UUID, limit i
 		Offset: offset,
 	}
 	return s.orderRepository.FindBy(ctx, filter)
+}
+
+func (s orderService) SendOrderMessage(ctx context.Context, o *model.Order) error {
+	return s.orderMessenger.Send(ctx, o)
 }

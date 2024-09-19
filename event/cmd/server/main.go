@@ -15,7 +15,7 @@ import (
 	handlerv1 "ticket-system/event/internal/handler/v1"
 	repository "ticket-system/event/internal/repository/postgres"
 	"ticket-system/event/internal/service"
-	v1 "ticket-system/event/pkg/v1"
+	v1 "ticket-system/event/pkg/v1/api"
 	"ticket-system/lib/interceptor"
 	"ticket-system/lib/logger"
 	"ticket-system/lib/query-engine/postgres"

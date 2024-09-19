@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 	"ticket-system/checkout/internal/config"
 	"ticket-system/checkout/internal/model"
-	eventAPI "ticket-system/event/pkg/v1"
+	"ticket-system/event/pkg/v1/api"
 	grpcClient "ticket-system/lib/client"
 )
 
@@ -23,7 +23,7 @@ func NewService() Service {
 }
 
 func (s *service) GetTicket(ctx context.Context, id model.UUID) (*model.Ticket, error) {
-	req := &eventAPI.GetTicketRequest{Id: string(id)}
+	req := &api.GetTicketRequest{Id: string(id)}
 	res, err := s.client.GetTicket(ctx, req)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (s *service) GetTicket(ctx context.Context, id model.UUID) (*model.Ticket, 
 	return ticket, nil
 }
 
-func (s *service) bindAPITicketToModel(t *eventAPI.Ticket) *model.Ticket {
+func (s *service) bindAPITicketToModel(t *api.Ticket) *model.Ticket {
 	return &model.Ticket{
 		Id:      model.UUID(t.Id),
 		EventId: model.UUID(t.EventId),

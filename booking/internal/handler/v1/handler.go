@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"ticket-system/booking/internal/model"
 	"ticket-system/booking/internal/service"
-	desc "ticket-system/booking/pkg/v1"
+	desc "ticket-system/booking/pkg/v1/api"
 )
 
 type BookingServiceImplementation struct {

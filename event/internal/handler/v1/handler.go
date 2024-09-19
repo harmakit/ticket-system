@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"ticket-system/event/internal/model"
 	"ticket-system/event/internal/service"
-	desc "ticket-system/event/pkg/v1"
+	desc "ticket-system/event/pkg/v1/api"
 )
 
 type EventServiceImplementation struct {

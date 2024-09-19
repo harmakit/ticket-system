@@ -3,7 +3,7 @@ package event.api.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-option go_package = "ticket-system/event/api/v1";
+option go_package = "ticket-system/event/api/v1;api";
 
 service EventService {
   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);

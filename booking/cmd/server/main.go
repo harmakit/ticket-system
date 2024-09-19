@@ -15,7 +15,7 @@ import (
 	repository "ticket-system/booking/internal/repository/postgres"
 	"ticket-system/booking/internal/scheduler"
 	"ticket-system/booking/internal/service"
-	v1 "ticket-system/booking/pkg/v1"
+	v1 "ticket-system/booking/pkg/v1/api"
 	"ticket-system/lib/interceptor"
 	"ticket-system/lib/logger"
 	"ticket-system/lib/query-engine/postgres"

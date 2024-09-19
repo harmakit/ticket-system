@@ -15,6 +15,7 @@ type OrderService interface {
 	UpdateOrder(ctx context.Context, order *model.Order) error
 	CheckBookingsAreEnough(items []*model.Item, bookings []*model.Booking) error
 	ListOrders(ctx context.Context, userId model.UUID, limit int, offset int) ([]*model.Order, error)
+	SendOrderMessage(ctx context.Context, order *model.Order) error
 }
 
 type ItemService interface {
@@ -157,6 +158,11 @@ func (s BusinessLogic) PlaceOrder(ctx context.Context, userId model.UUID) (*mode
 			return err
 		}
 
+		err = s.orderService.SendOrderMessage(ctx, order)
+		if err != nil {
+			return err
+		}
+
 		items := make([]*model.Item, cartsLen)
 		for i := range cartsLen {
 			bookingId, err := s.bookingService.CreateBooking(ctx, tickets[i], order, carts[i], userId)
@@ -249,7 +255,12 @@ func (s BusinessLogic) MarkOrderAsPaid(ctx context.Context, id model.UUID) error
 	}
 
 	order.Status = model.StatusPaid
-	return s.orderService.UpdateOrder(ctx, order)
+	err = s.orderService.UpdateOrder(ctx, order)
+	if err != nil {
+		return err
+	}
+
+	return s.orderService.SendOrderMessage(ctx, order)
 }
 
 func (s BusinessLogic) GetUserCart(ctx context.Context, userId model.UUID) ([]*model.Cart, error) {
@@ -296,7 +307,12 @@ func (s BusinessLogic) CancelOrder(ctx context.Context, id model.UUID) error {
 
 	order.Status = model.StatusCancelled
 
-	return s.orderService.UpdateOrder(ctx, order)
+	err = s.orderService.UpdateOrder(ctx, order)
+	if err != nil {
+		return err
+	}
+
+	return s.orderService.SendOrderMessage(ctx, order)
 }
 
 func (s BusinessLogic) ListOrders(ctx context.Context, userId model.UUID, limit int, offset int) ([]*model.Order, [][]*model.Item, error) {

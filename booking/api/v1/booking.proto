@@ -3,7 +3,7 @@ package booking.api.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-option go_package = "ticket-system/booking/api/v1";
+option go_package = "ticket-system/booking/api/v1;api";
 
 service BookingService {
   rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
