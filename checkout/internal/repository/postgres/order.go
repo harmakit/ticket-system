@@ -29,7 +29,7 @@ func (r orderRepository) bindSchemaToModel(e *schema.Order) *model.Order {
 	order := &model.Order{
 		Id:     model.UUID(e.Id),
 		UserId: model.UUID(e.UserId),
-		Status: model.Status(e.Status),
+		Status: model.OrderStatus(e.Status),
 	}
 
 	return order

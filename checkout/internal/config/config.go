@@ -16,7 +16,11 @@ type Config struct {
 	}
 	Brokers []string
 	Topics  struct {
-		Order string
+		Order struct {
+			Name              string
+			Partitions        int
+			ReplicationFactor int
+		}
 	}
 }
 
@@ -41,8 +45,17 @@ func Init() error {
 	Data.Brokers = []string{
 		os.Getenv("BROKER_1"),
 		os.Getenv("BROKER_2"),
+		os.Getenv("BROKER_3"),
 	}
-	Data.Topics.Order = os.Getenv("TOPIC_ORDER")
+	Data.Topics.Order.Name = os.Getenv("TOPIC_ORDER")
+	Data.Topics.Order.Partitions, err = strconv.Atoi(os.Getenv("TOPIC_ORDER_PARTITIONS"))
+	if err != nil {
+		return errors.WithMessage(err, "invalid partitions")
+	}
+	Data.Topics.Order.ReplicationFactor, err = strconv.Atoi(os.Getenv("TOPIC_ORDER_REPLICATION_FACTOR"))
+	if err != nil {
+		return errors.WithMessage(err, "invalid replication factor")
+	}
 
 	err = Validate()
 	if err != nil {
@@ -81,8 +94,14 @@ func Validate() error {
 		}
 	}
 
-	if Data.Topics.Order == "" {
+	if Data.Topics.Order.Name == "" {
 		return errors.New("invalid order topic")
+	}
+	if Data.Topics.Order.Partitions == 0 {
+		return errors.New("invalid order partitions")
+	}
+	if Data.Topics.Order.ReplicationFactor == 0 {
+		return errors.New("invalid order replication factor")
 	}
 
 	return nil

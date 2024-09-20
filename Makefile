@@ -8,16 +8,19 @@ start: start-shared-containers ## build and run containers
 	[ -d "event" ] && cd event && make build && make up && make migrate
 	[ -d "booking" ] && cd booking && make build && make up && make migrate
 	[ -d "checkout" ] && cd checkout && make build && make up && make migrate
+	[ -d "notification" ] && cd notification && make build && make up
 
 start-debug: start-shared-containers ## build and run containers with debugger
 	[ -d "event" ] && cd event && make build-debug && make up-debug && make migrate
 	[ -d "booking" ] && cd booking && make build-debug && make up-debug && make migrate
 	[ -d "checkout" ] && cd checkout && make build-debug && make up-debug && make migrate
+	[ -d "notification" ] && cd notification && make build-debug && make up-debug
 
 stop:
 	[ -d "event" ] && cd event && make down
 	[ -d "booking" ] && cd booking && make down
 	[ -d "checkout" ] && cd checkout && make down
+	[ -d "notification" ] && cd checkout && make down
 	stop-shared-containers
 
 

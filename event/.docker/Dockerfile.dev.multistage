@@ -16,6 +16,7 @@ COPY ./booking/go.mod ../booking/
 COPY ./booking/pkg ../booking/pkg/
 COPY ./checkout/go.mod ../checkout/
 COPY ./checkout/pkg ../checkout/pkg/
+COPY ./notification/go.mod ../notification/
 
 RUN --mount=type=cache,target=/gomod-cache  \
     go mod download

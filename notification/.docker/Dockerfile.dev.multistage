@@ -3,20 +3,21 @@
 # Build the application from source
 FROM golang:1.23 AS build-stage
 ENV CGO_ENABLED 0
-ENV GOBIN /app/booking/bin
+ENV GOBIN /app/notification/bin
 
-WORKDIR /app/booking
+WORKDIR /app/notification
 
 RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 
-COPY ./booking .
+COPY ./notification .
 
 COPY ./event/go.mod ../event/
 COPY ./event/pkg ../event/pkg
 COPY ./checkout/go.mod ../checkout/
 COPY ./checkout/pkg ../checkout/pkg
-COPY ./notification/go.mod ../notification/
+COPY ./booking/go.mod ../booking/
+COPY ./booking/pkg ../booking/pkg
 
 RUN --mount=type=cache,target=/gomod-cache  \
     go mod download
@@ -24,10 +25,11 @@ RUN --mount=type=cache,target=/gomod-cache  \
 COPY ./lib /app/lib
 COPY ./go.work /app/go.work
 
-RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache  \
-    go build -o ./bin/server ./cmd/server
+RUN --mount=type=cache,target=/gomod-cache \
+    go install -ldflags '-extldflags "-static"' github.com/go-delve/delve/cmd/dlv@latest
+
 RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
-    go build -o ./bin/migrate ./cmd/migrate
+     go build -gcflags="all=-N -l" -o ./bin/app ./cmd/app
 
 # Run the tests in the container
 FROM build-stage AS run-test-stage
@@ -38,8 +40,7 @@ FROM alpine:latest AS build-release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /app/booking/bin/server /server
-COPY --from=build-stage /app/booking/bin/migrate /migrate
-COPY --from=build-stage /app/booking/db/migrations /migrations
+COPY --from=build-stage /app/notification/bin/app /app
+COPY --from=build-stage /app/notification/bin/dlv /dlv
 
-CMD ["/server"]
+CMD exec /dlv --listen=:${DEBUG_PORT} --headless=true --api-version=2 exec /app

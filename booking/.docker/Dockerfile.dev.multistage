@@ -12,8 +12,11 @@ RUN go env -w GOMODCACHE=/gomod-cache
 
 COPY ./booking .
 
-COPY ./event/go.mod ./event/pkg ../event/
-COPY ./checkout/go.mod ./checkout/pkg ../checkout/
+COPY ./event/go.mod ../event/
+COPY ./event/pkg ../event/pkg
+COPY ./checkout/go.mod ../checkout/
+COPY ./checkout/pkg ../checkout/pkg
+COPY ./notification/go.mod ../notification/
 
 RUN --mount=type=cache,target=/gomod-cache  \
     go mod download

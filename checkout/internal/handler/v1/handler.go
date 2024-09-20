@@ -155,16 +155,16 @@ func (impl CheckoutServiceImplementation) bindModelToDescOrder(o *model.Order, i
 		return nil
 	}
 
-	var status desc.Status
+	var status desc.OrderStatus
 	switch o.Status {
 	case model.StatusCreated:
-		status = desc.Status_CREATED
+		status = desc.OrderStatus_CREATED
 	case model.StatusPaid:
-		status = desc.Status_PAID
+		status = desc.OrderStatus_PAID
 	case model.StatusFailed:
-		status = desc.Status_FAILED
+		status = desc.OrderStatus_FAILED
 	case model.StatusCancelled:
-		status = desc.Status_CANCELLED
+		status = desc.OrderStatus_CANCELLED
 	}
 
 	var items []*desc.Item

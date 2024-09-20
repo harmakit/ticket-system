@@ -3,20 +3,21 @@
 # Build the application from source
 FROM golang:1.23 AS build-stage
 ENV CGO_ENABLED 0
-ENV GOBIN /app/event/bin
+ENV GOBIN /app/notification/bin
 
-WORKDIR /app/event
+WORKDIR /app/notification
 
 RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 
-COPY ./event .
+COPY ./notification .
 
-COPY ./booking/go.mod ../booking/
-COPY ./booking/pkg ../booking/pkg/
+COPY ./event/go.mod ../event/
+COPY ./event/pkg ../event/pkg
 COPY ./checkout/go.mod ../checkout/
-COPY ./checkout/pkg ../checkout/pkg/
-COPY ./notification/go.mod ../notification/
+COPY ./checkout/pkg ../checkout/pkg
+COPY ./booking/go.mod ../booking/
+COPY ./booking/pkg ../booking/pkg
 
 RUN --mount=type=cache,target=/gomod-cache  \
     go mod download
@@ -25,9 +26,7 @@ COPY ./lib /app/lib
 COPY ./go.work /app/go.work
 
 RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache  \
-    go build -o ./bin/server ./cmd/server
-RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
-    go build -o ./bin/migrate ./cmd/migrate
+    go build -o ./bin/app ./cmd/app
 
 # Run the tests in the container
 FROM build-stage AS run-test-stage
@@ -38,8 +37,6 @@ FROM alpine:latest AS build-release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /app/event/bin/server /server
-COPY --from=build-stage /app/event/bin/migrate /migrate
-COPY --from=build-stage /app/event/db/migrations /migrations
+COPY --from=build-stage /app/notification/bin/app /app
 
-CMD ["/server"]
+CMD ["/app"]

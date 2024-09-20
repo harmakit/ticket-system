@@ -1,0 +1,14 @@
+networks:
+  ticket-system:
+    driver: bridge
+
+services:
+  notification:
+    build:
+      context: ../../
+      dockerfile: notification/.docker/Dockerfile.multistage
+    networks:
+      - ticket-system
+    restart: on-failure
+    env_file:
+      - ../.env

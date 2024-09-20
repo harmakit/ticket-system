@@ -55,11 +55,11 @@ message PlaceOrderResponse {
 message Order {
   string id = 1;
   string user_id = 2;
-  Status status = 3;
+  OrderStatus status = 3;
   repeated Item items = 4;
 }
 
-enum Status {
+enum OrderStatus {
   CREATED = 0;
   PAID = 1;
   FAILED = 2;
