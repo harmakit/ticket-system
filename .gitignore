@@ -23,6 +23,7 @@ go.work.sum
 # env file
 .env
 
+.DS_Store
 .idea
 */.docker/data/*
 */vendor-proto

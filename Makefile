@@ -20,8 +20,8 @@ stop:
 	[ -d "event" ] && cd event && make down
 	[ -d "booking" ] && cd booking && make down
 	[ -d "checkout" ] && cd checkout && make down
-	[ -d "notification" ] && cd checkout && make down
-	stop-shared-containers
+	[ -d "notification" ] && cd notification && make down
+	make stop-shared-containers
 
 
 ### helpers
