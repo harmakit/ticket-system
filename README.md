@@ -11,6 +11,35 @@ The services are:
 3. **Booking Service**: Manages seat reservations and availability.
 4. **Notification Service**: Sends notifications when orders are updated.
 
+```mermaid
+flowchart TD
+    subgraph **event**
+        E1[Manages **events**]
+        E2[Provides **tickets**]
+        E3[Creates/Deletes **stocks** for **events**]
+    end
+    subgraph **booking**
+        B1[Manages **stocks**]
+        B2[Manages **stocks'** **bookings**]
+        B3[Monitors expired **bookings**]
+    end
+    subgraph **checkout**
+        C1[Manages **cart**]
+        C2[Books **cart** items]
+        C3[Creates **order**]
+        C4[Produces **order** update message]
+    end
+    subgraph **notification**
+        N1[Consumes **order** update message]
+        N2[Sends notifications]
+    end
+    C3 -- Fetch tickets **[gRPC]** --> E2
+    C2 -- Reserve available stocks **[gRPC]** --> B2
+    E3 -- Manage stocks **[gRPC]** --> B1
+    C4 -. Push **[Kafka]** .-> N1
+
+```
+
 Features
 - Each microservice has a clean structure with separation of concerns, making the project easy to maintain and extend.
 - Logical separation between layers like service, handler, repository, and API definitions.
