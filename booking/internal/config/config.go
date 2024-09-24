@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"strconv"
+	"sync"
 )
 
 type Config struct {
@@ -13,26 +14,31 @@ type Config struct {
 }
 
 var Data *Config
+var once sync.Once
 
 func Init() error {
 	var err error
-	Data = &Config{}
+	once.Do(func() {
+		Data = &Config{}
 
-	Data.Port, err = strconv.Atoi(os.Getenv("SERVER_PORT"))
-	if err != nil {
-		return errors.WithMessage(err, "invalid port")
-	}
+		Data.Port, err = strconv.Atoi(os.Getenv("SERVER_PORT"))
+		if err != nil {
+			err = errors.WithMessage(err, "invalid port")
+			return
+		}
 
-	Data.DatabaseUrl = os.Getenv("DATABASE_URL")
+		Data.DatabaseUrl = os.Getenv("DATABASE_URL")
 
-	Data.Env = os.Getenv("ENV")
+		Data.Env = os.Getenv("ENV")
 
-	err = Validate()
-	if err != nil {
-		return errors.WithMessage(err, "invalid config")
-	}
+		err = Validate()
+		if err != nil {
+			err = errors.WithMessage(err, "invalid config")
+			return
+		}
+	})
 
-	return nil
+	return err
 }
 
 func Validate() error {
