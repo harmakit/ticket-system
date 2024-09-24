@@ -62,7 +62,7 @@ func (r orderRepository) FindBy(ctx context.Context, params repository.FindOrder
 
 	query := r.getQueryBuilder().Select(schema.OrderColumns...).From(schema.OrderTable)
 	if params.UserId.Valid {
-		query = query.Where(sq.Eq{"user_id": params.UserId.Value})
+		query = query.Where(sq.Eq{"user_id": repository.NullUUID(params.UserId)})
 	}
 	if params.Limit > 0 {
 		query = query.Limit(uint64(params.Limit))
@@ -97,7 +97,7 @@ func (r orderRepository) Create(ctx context.Context, o *model.Order) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.OrderTable).Columns(schema.OrderColumns...).
-		Values(sq.Expr(repository.NewUUID), o.UserId, o.Status).
+		Values(sq.Expr(NewUUID), o.UserId, o.Status).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

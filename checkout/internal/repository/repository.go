@@ -27,8 +27,6 @@ type CartRepository interface {
 	Delete(ctx context.Context, id model.UUID) error
 }
 
-const NewUUID = "gen_random_uuid()"
-
 func NullString(s model.NullString) sql.NullString {
 	return sql.NullString{
 		String: s.Value,

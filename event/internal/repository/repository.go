@@ -22,8 +22,6 @@ type LocationRepository interface {
 	Find(ctx context.Context, id model.UUID) (*model.Location, error)
 }
 
-const NewUUID = "gen_random_uuid()"
-
 type FindEventsByParams struct {
 	Offset     int
 	Limit      int

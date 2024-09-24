@@ -87,7 +87,7 @@ func (r ticketRepository) Create(ctx context.Context, t *model.Ticket) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.TicketTable).Columns(schema.TicketColumns...).
-		Values(sq.Expr(repository.NewUUID), t.EventId, t.Name, t.Price).
+		Values(sq.Expr(NewUUID), t.EventId, t.Name, t.Price).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

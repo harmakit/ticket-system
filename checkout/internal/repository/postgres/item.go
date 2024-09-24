@@ -91,7 +91,7 @@ func (r itemRepository) Create(ctx context.Context, i *model.Item) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.ItemTable).Columns(schema.ItemColumns...).
-		Values(sq.Expr(repository.NewUUID), i.OrderId, i.StockId, i.TicketId, i.Count).
+		Values(sq.Expr(NewUUID), i.OrderId, i.StockId, i.TicketId, i.Count).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

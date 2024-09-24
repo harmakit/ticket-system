@@ -12,7 +12,8 @@ services:
     networks:
       - ticket-system
     depends_on:
-      - booking_db
+      booking_db:
+        condition: service_healthy
     restart: on-failure
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@booking_db:5432/${POSTGRES_DB}
@@ -30,3 +31,8 @@ services:
     networks:
       - ticket-system
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

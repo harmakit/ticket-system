@@ -61,7 +61,7 @@ func (r stockRepository) Create(ctx context.Context, s *model.Stock) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.StockTable).Columns(schema.StockColumns...).
-		Values(sq.Expr(repository.NewUUID), s.EventId, s.TicketId, s.SeatsTotal, s.SeatsBooked).
+		Values(sq.Expr(NewUUID), s.EventId, s.TicketId, s.SeatsTotal, s.SeatsBooked).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()
@@ -86,7 +86,7 @@ func (r stockRepository) FindBy(ctx context.Context, filter repository.FindStock
 	query := r.getQueryBuilder().Select(schema.StockColumns...).From(schema.StockTable)
 	query = query.Where(sq.Eq{"event_id": filter.EventId})
 	if filter.TicketId.Valid {
-		query = query.Where(sq.Eq{"ticket_id": filter.TicketId.Value})
+		query = query.Where(sq.Eq{"ticket_id": repository.NullUUID(filter.TicketId)})
 	}
 
 	rawQuery, args, err := query.ToSql()

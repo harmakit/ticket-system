@@ -65,13 +65,13 @@ func (r bookingRepository) FindBy(ctx context.Context, params repository.FindBoo
 
 	query := r.getQueryBuilder().Select(schema.BookingColumns...).From(schema.BookingTable)
 	if params.StockId.Valid {
-		query = query.Where(sq.Eq{"stock_id": params.StockId.Value})
+		query = query.Where(sq.Eq{"stock_id": repository.NullUUID(params.StockId)})
 	}
 	if params.OrderId.Valid {
-		query = query.Where(sq.Eq{"order_id": params.OrderId.Value})
+		query = query.Where(sq.Eq{"order_id": repository.NullUUID(params.OrderId)})
 	}
 	if params.UserId.Valid {
-		query = query.Where(sq.Eq{"user_id": params.UserId.Value})
+		query = query.Where(sq.Eq{"user_id": repository.NullUUID(params.UserId)})
 	}
 	if params.OnlyExpired {
 		query = query.Where(sq.Lt{"expired_at": time.Now()})
@@ -111,7 +111,7 @@ func (r bookingRepository) Create(ctx context.Context, b *model.Booking) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.BookingTable).Columns(schema.BookingColumns...).
-		Values(sq.Expr(repository.NewUUID), b.StockId, b.UserId, b.OrderId, b.Count, b.CreatedAt, b.ExpiredAt).
+		Values(sq.Expr(NewUUID), b.StockId, b.UserId, b.OrderId, b.Count, b.CreatedAt, b.ExpiredAt).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

@@ -63,10 +63,10 @@ func (r cartRepository) FindBy(ctx context.Context, filter repository.FindCartsB
 
 	query := r.getQueryBuilder().Select(schema.CartColumns...).From(schema.CartTable)
 	if filter.UserId.Valid {
-		query = query.Where(sq.Eq{"user_id": filter.UserId.Value})
+		query = query.Where(sq.Eq{"user_id": repository.NullUUID(filter.UserId)})
 	}
 	if filter.TicketId.Valid {
-		query = query.Where(sq.Eq{"ticket_id": filter.TicketId.Value})
+		query = query.Where(sq.Eq{"ticket_id": repository.NullUUID(filter.TicketId)})
 	}
 
 	rawQuery, args, err := query.ToSql()
@@ -95,7 +95,7 @@ func (r cartRepository) Create(ctx context.Context, c *model.Cart) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.CartTable).Columns(schema.CartColumns...).
-		Values(sq.Expr(repository.NewUUID), c.UserId, c.TicketId, c.Count).
+		Values(sq.Expr(NewUUID), c.UserId, c.TicketId, c.Count).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()

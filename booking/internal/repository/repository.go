@@ -22,8 +22,6 @@ type StockRepository interface {
 	Delete(ctx context.Context, id model.UUID) error
 }
 
-const NewUUID = "gen_random_uuid()"
-
 type FindBookingsByParams struct {
 	Ids         []model.UUID
 	StockId     model.NullUUID

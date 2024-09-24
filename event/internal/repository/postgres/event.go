@@ -75,7 +75,7 @@ func (r eventRepository) FindBy(ctx context.Context, params repository.FindEvent
 
 	query := r.getQueryBuilder().Select(schema.EventColumns...).From(schema.EventTable)
 	if params.LocationId.Valid {
-		query = query.Where(sq.Eq{"location_id": params.LocationId.Value})
+		query = query.Where(sq.Eq{"location_id": repository.NullUUID(params.LocationId)})
 	}
 	if params.Limit > 0 {
 		query = query.Limit(uint64(params.Limit))
@@ -110,7 +110,7 @@ func (r eventRepository) Create(ctx context.Context, e *model.Event) error {
 	db := r.transactionManager.GetQueryEngine(ctx)
 
 	query := r.getQueryBuilder().Insert(schema.EventTable).Columns(schema.EventColumns...).
-		Values(sq.Expr(repository.NewUUID), e.Date, e.Duration, e.Name, repository.NullString(e.Description), repository.NullUUID(e.LocationId)).
+		Values(sq.Expr(NewUUID), e.Date, e.Duration, e.Name, repository.NullString(e.Description), repository.NullUUID(e.LocationId)).
 		Suffix("RETURNING *")
 
 	rawQuery, args, err := query.ToSql()
